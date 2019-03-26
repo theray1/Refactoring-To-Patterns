@@ -10,9 +10,9 @@ public abstract class PermissionState {
     }
 
     public final static PermissionState REQUESTED = new PermissionRequested();
-    public final static PermissionState CLAIMED = new PermissionClaimed();
-    public final static PermissionState GRANTED = new PermissionGranted();
-    public final static PermissionState DENIED = new PermissionDenied();
+    public final static PermissionState CLAIMED   = new PermissionClaimed();
+    public final static PermissionState GRANTED   = new PermissionGranted();
+    public final static PermissionState DENIED    = new PermissionDenied();
 
 
     @Override
