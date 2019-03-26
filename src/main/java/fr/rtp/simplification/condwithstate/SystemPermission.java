@@ -17,7 +17,7 @@ public class SystemPermission {
   private String state;
 
   public final static String REQUESTED = "REQUESTED";
-  public final static String CLAIMED = "REQUESTED";
+  public final static String CLAIMED = "CLAIMED";
   public final static String GRANTED = "GRANTED";
   public final static String DENIED = "DENIED";
 
