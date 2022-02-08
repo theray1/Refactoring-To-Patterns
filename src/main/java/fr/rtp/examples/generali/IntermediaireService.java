@@ -1,26 +1,27 @@
 package fr.rtp.examples.generali;
 
-import java.util.logging.Logger;
-
 import org.apache.commons.lang.StringUtils;
+
+import java.util.logging.Logger;
 
 public class IntermediaireService {
 
+    private static final Logger log = Logger.getLogger(IntermediaireService.class.getName());
     //@Autowired
     private IParamsPortefeuilleService paramsPortefeuilleService;
     //@Autowired
     private IGenericService genericService;
     //@Autowired
     private IGestionIdentiteAgenceServiceProxy vitrineService;
-    
-    public String getGestionnaireEmailForDeclaration(String codePortefeuille, String codeCompagnie) throws GecBusinessException, GecTechnicalException {
+
+    public String getGestionnaireEmailForDeclaration(String codeCompagnie, String codePortefeuille) throws GecBusinessException, GecTechnicalException {
         try {
             ParamsPortefeuille paramsPortefeuille = paramsPortefeuilleService.getParamsPortefeuilleSalarie(codeCompagnie);
-            if(portefeuilleHasNoEmail(paramsPortefeuille)){
+            if (portefeuilleHasNoEmail(paramsPortefeuille)) {
                 paramsPortefeuille = paramsPortefeuilleService.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille);
-                if(portefeuilleHasNoEmail(paramsPortefeuille)){
+                if (portefeuilleHasNoEmail(paramsPortefeuille)) {
                     paramsPortefeuille = paramsPortefeuilleService.getParamsPortefeuilleDirect(codeCompagnie, codePortefeuille);
-                    if(portefeuilleHasNoEmail(paramsPortefeuille)){
+                    if (portefeuilleHasNoEmail(paramsPortefeuille)) {
                         return emailFromGenericAndVitrineService(codePortefeuille, codeCompagnie);
                     } else {
                         logEmailResolutionInfo(paramsPortefeuille.getAdresseMail(), "portefeuille DIRECT", codePortefeuille, codeCompagnie);
@@ -45,13 +46,15 @@ public class IntermediaireService {
 
     private String emailFromGenericAndVitrineService(String codePortefeuille, String codeCompagnie) throws GecTechnicalException, IdentiteAgenceNonTrouveProxyBusinessException {
         InformationIntermediaire genericIntermediaire = genericService.getInformationIntermediaire(codeCompagnie, codePortefeuille);
-        if(genericIntermediaire == null){
+        assert genericIntermediaire.getIntermediaire() != null;
+
+        if (genericIntermediaire == null) {
             log.severe("ERREUR - Email gestionnaire NON resolu. Generic service retourne info intermediaire null pour [codePortefeuille='" + codePortefeuille + "', [codeCompagnie='" + codeCompagnie + "'].");
             return null;
         }
-        if(StringUtils.isBlank(genericIntermediaire.getBureau().getEmail())){
+        if (StringUtils.isBlank(genericIntermediaire.getBureau().getEmail())) {
             Bureau bureauFromVitrine = vitrineService.recupererInfosAgence(genericIntermediaire.getBureau().getId());
-            if(vitrineBureauHasNoEmail(bureauFromVitrine)){
+            if (vitrineBureauHasNoEmail(bureauFromVitrine)) {
                 logEmailResolutionInfo(genericIntermediaire.getIntermediaire().getEmail(), "mail intermediaire GENERIC", codePortefeuille, codeCompagnie);
                 return genericIntermediaire.getIntermediaire().getEmail();
             } else {
@@ -74,9 +77,9 @@ public class IntermediaireService {
 
     private void logEmailResolutionInfo(String adresseMail, String serviceName, String codePortefeuille, String codeCompagnie) {
         StringBuilder info = new StringBuilder();
-        info.append("Email gestionnaire '"); 
+        info.append("Email gestionnaire '");
         info.append(adresseMail);
-        info.append("' resolu avec "); 
+        info.append("' resolu avec ");
         info.append(serviceName);
         info.append(" service [codePortefeuille='");
         info.append(codePortefeuille);
@@ -85,6 +88,4 @@ public class IntermediaireService {
         info.append("'].");
         log.info(info.toString());
     }
-
-    private static final Logger log = Logger.getLogger(IntermediaireService.class.getName());
 }

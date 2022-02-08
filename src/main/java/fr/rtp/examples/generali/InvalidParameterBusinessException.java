@@ -1,6 +1,6 @@
 package fr.rtp.examples.generali;
 
-public class InvalidParameterBusinessException extends Exception{
+public class InvalidParameterBusinessException extends RuntimeException {
 
     /**
      * 

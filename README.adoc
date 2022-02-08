@@ -1,0 +1,501 @@
+= Refactoring to Patterns
+== Refactoring to Patterns
+
+=== Code Simplification
+
+==== Introduce Compose Method
+
+The ``Compose
+Methodfootnote:[http://c2.com/ppr/wiki/WikiPagesAboutRefactoring/ComposedMethod.html]''
+pattern is about producing methods that efficiently communicate what
+they do and how they do what they do. According to Kent Beck:
+
+____
+«Divide your program into methods that perform one identifiable task.
+Keep all of the operations in a method at the same level of abstraction.
+This will naturally result in programs with many small methods, each a
+few lines long.»
+____
+
+A Composed Method consists of calls to well-named methods that are all
+at the same level of detail. Follow the instructions below to simplify
+the method  :
+
+[source,java]
+----
+----
+
+Invert the ``readonly'' check to a ``Guard Clause''.
+
+....
+if (readOnly) {
+        return;
+    }
+....
+
+Apply the ``Extract Method'' operation to lines 18-19 and create the
+method .
+
+Apply the ``Extract Constant'' operation to replace the magic number
+``10 '' and introduce an ``Explaining Variable'' called .
+
+Apply the ``Inline variable'' operation to and then apply the ``Extract
+Method'' operation again to the code that checks whether the element
+array is at its capacity and needs to grow, and create the method .
+
+Finally, apply the ``Extract Method'' operation to the code that grows
+the size of the array, creating the method.
+
+[source,java]
+----
+----
+
+==== Replace Conditional Logic with Strategy
+
+The Strategy pattern defines a family of algorithms, encapsulates each
+algorithm, and make them interchangeable, letting the algorithm vary
+independently from clients that use it. We can apply this pattern to
+classes where several methods have similar structure: a sequence of
+similar conditions. For instance, let us consider the
+classfootnote:[http://www.informit.com/articles/article.aspx?p=1398607&seqNum=2],
+from Joshua Kerievsky’s book , presented in
+Listing #lst:loan[[lst:loan]].
+
+[source,java]
+----
+----
+
+This class deals with calculating capital for three different kinds of
+bank loans:
+
+Term loan::
+: a loan from a bank for a specific amount that has a specified
+repayment schedule and a fixed or floating interest rate.
+Revolver::
+: a credit that is automatically renewed as debts are paid off; and
+Advised line::
+: a credit that a financial institution approves and maintains for a
+customer.
+
+Much of the logic of methods and deals with figuring out whether the
+loan is a term loan, a revolver, or an advised line. For example, a null
+expiry date and a non-null maturity date indicate a term loan. A null
+maturity and a non-null expiry date indicate a revolver loan.
+
+In this exercise, we will use the Strategy pattern to simplify the
+calculation of the loan’s capital.
+
+First, create a class called and add a method called , with an empty
+body.
+
+....
+public class CapitalStrategy {
+    public double capital(Loan loan) {
+        return 0.0;
+    }
+}
+....
+
+Now, apply the ``Move Method'' refactoring operation to move the method
+to class . This involves:
+
+. Changing the visibility of some private methods: , , , , and .
+. Encapsulating fields , , , , , , and .
+. Creating a simple version of method on class , which delegates to an
+instance of .
+. Moving the method and replacing all references to by .
+
+* Maybe we should remember that "protected" methods are accessible from
+classes belonging to the same package.
+
+....
+public class LoanRefactored {
+    // (...)
+
+    public double capital() {
+        return new CapitalStrategy().capital(this);
+    }
+    // (...)
+    protected double riskFactor() {
+        return RiskFactor.getFactors().forRating(riskRating);
+    }
+
+    protected double unusedRiskFactor() {
+        return UnusedRiskFactors.getFactors().forRating(riskRating);
+    }
+
+    protected double getUnusedPercentage() {
+        return 0.0;
+    }
+
+    protected Date getMaturity() {
+        return maturity;
+    }
+
+    protected Date getExpiry() {
+        return expiry;
+    }
+
+    protected double getCommitment() {
+        return commitment;
+    }
+
+    protected List<Payment> getPayments() {
+        return payments;
+    }
+}
+
+public class CapitalStrategy {
+    public double capital(LoanRefactored loan) {
+        if (loan.getExpiry() == null && loan.getMaturity() != null)
+            return loan.getCommitment() * loan.duration() * loan.riskFactor();
+        if (loan.getExpiry() != null && loan.getMaturity() == null) {
+            if (loan.getUnusedPercentage() != 1.0)
+                return loan.getCommitment() *loan.getUnusedPercentage() * loan.duration() * loan.riskFactor();
+            else
+                return (loan.outstandingRiskAmount() * loan.duration() * loan.riskFactor())
+                        + (loan.unusedRiskAmount() * loan.duration() * loan.unusedRiskFactor());
+        }
+        return 0.0;
+    }
+}
+....
+
+Apply the ``Move Method'' refactoring operation again to move the method
+to class .
+
+....
+public double duration(LoanRefactored loan) {
+        if (loan.getExpiry() == null && loan.getMaturity() != null)
+            return this.weightedAverageDuration(loan);
+        else if (loan.getExpiry() != null && loan.getMaturity() == null)
+            return loan.strategy.yearsTo(loan.getExpiry(), loan);
+        return 0.0;
+    }
+....
+
+Since some methods, such as , , , and are only used by method , we can
+move them to class as well. The two constants, and can also be moved to
+class .
+
+* After these refactorings, the code should be:
+
+[source,java]
+----
+----
+
+[source,java]
+----
+----
+
+Finally, apply the ``Replace Conditional with Polymorphism ''
+refactoring operation on method method. First, create a subclass named
+for the capital calculation for a term loan. Then, move and adapt
+methods , , and to the subclass.
+
+....
+public class CapitalStrategyTermLoan extends CapitalStrategy {
+   public double capital(Loan loan) {
+      return loan.getCommitment() * duration(loan) * riskFactorFor(loan);
+   }
+
+   public double duration(Loan loan) {
+      return weightedAverageDuration(loan);
+   }
+
+   private double weightedAverageDuration(Loan loan) {
+      double duration = 0.0;
+      double weightedAverage = 0.0;
+      double sumOfPayments = 0.0;
+      Iterator loanPayments = loan.getPayments().iterator();
+      while (loanPayments.hasNext()) {
+         Payment payment = (Payment)loanPayments.next();
+         sumOfPayments += payment.amount();
+         weightedAverage += yearsTo(payment.date(), loan) * payment.amount();
+      }
+      if (loan.getCommitment() != 0.0)
+         duration = weightedAverage / sumOfPayments;
+      return duration;
+   }
+....
+
+In the end, class is abstract:
+
+[source,java]
+----
+----
+
+=== Chain Constructors
+
+Classes may have several constructors: this is normal, as there may be
+different ways to instantiate objects of a same class. However, when
+there is duplicated code across two or more contacts, maintenance
+problems arise.
+
+Consider the three constructors of class  , presented in
+Listing #lst:loan:constructors[[lst:loan:constructors]], which have
+duplicated code. We will use the refactoring operation named ``Chain
+Constructors'', whose goal is to remove duplication in constructors by
+making them call each other.
+
+First, we analyze these constructors to find out which one is the
+``catch-all constructor'', the one that handles all of the construction
+details. It seems that it should be constructor 3, since making
+constructors 1 and 2 call 3 can be achieved with a minimum amount of
+work.
+
+....
+public Loan(float notional, float outstanding, int rating, Date expiry) {
+   this.strategy = new TermROC();
+   this.notional = notional;
+   this.outstanding = outstanding;
+   this.rating = rating;
+   this.expiry = expiry;
+}
+
+public Loan(float notional, float outstanding, int rating, Date expiry, Date maturity) {
+   this.strategy = new RevolvingTermROC();
+   this.notional = notional;
+   this.outstanding = outstanding;
+   this.rating = rating;
+   this.expiry = expiry;
+   this.maturity = maturity;
+}
+
+public Loan(CapitalStrategy strategy, float notional, float outstanding, int rating, Date expiry, Date maturity) {
+   this.strategy = strategy;
+   this.notional = notional;
+   this.outstanding = outstanding;
+   this.rating = rating;
+   this.expiry = expiry;
+   this.maturity = maturity;
+}
+....
+
+Change constructor 1 to make it call constructor 3.
+
+public Loan(float notional, float outstanding, int rating, Date expiry)
+this(new TermROC(), notional, outstanding, rating, expiry, null);
+
+Now, change constructor 2 to make it also call constructor 3.
+
+public Loan(float notional, float outstanding, int rating, Date expiry,
+Date maturity) this(new RevolvingTermROC(), notional, outstanding,
+rating, expiry, maturity);
+
+=== Replace Constructors with Creation Methods
+
+The goal of the ``Replace Constructors with Creation Methods''
+refactoring operation is to replace constructors with
+intention-revealing creation methods that return object instances.
+
+Creation methods have at least two advantages, that cannot be achieved
+in Java. First, they can have different names and thus communicate
+intention efficiently. Second, creation methods can have the same number
+of parameters.
+
+We will apply this refactoring to improve the constructions of class .
+Consider another version of class , presented in
+Listing #lst:load:constructors:bis[[lst:load:constructors:bis]].
+
+....
+public class Loan {
+
+    double commitment;
+    double outstanding;
+    int riskRating;
+    Date maturity;
+    Date expiry;
+    CapitalStrategy capitalStrategy;
+
+    public Loan(double commitment, int riskRating, Date maturity) {
+        this(commitment, 0.00, riskRating, maturity, null);
+    }
+
+    public Loan(double commitment, int riskRating, Date maturity, Date expiry) {
+       this(commitment, 0.00, riskRating, maturity, expiry);
+    }
+
+    public Loan(double commitment, double outstanding, int riskRating, Date maturity, Date expiry) {
+        this(null, commitment, outstanding, riskRating, maturity, expiry);
+    }
+
+    public Loan(CapitalStrategy capitalStrategy, double commitment, int riskRating, Date maturity, Date expiry) {
+        this(capitalStrategy, commitment, 0.00, riskRating, maturity, expiry);
+    }
+
+    public Loan(CapitalStrategy capitalStrategy, double commitment, double outstanding, int riskRating, Date maturity,
+            Date expiry) {
+        this.commitment = commitment;
+        this.outstanding = outstanding;
+        this.riskRating = riskRating;
+        this.maturity = maturity;
+        this.expiry = expiry;
+        this.capitalStrategy = capitalStrategy;
+
+        if (capitalStrategy == null) {
+            if (expiry == null)
+                this.capitalStrategy = new CapitalStrategyTermLoan();
+            else if (maturity == null)
+                this.capitalStrategy = new CapitalStrategyRevolver();
+            else
+                this.capitalStrategy = new CapitalStrategyRCTL();
+        }
+    }
+}
+....
+
+To apply this refactoring, we need to find a code that calls one of
+these constructors. For instance, in a test case:
+
+public class CapitalCalculationTests... public void
+testTermLoanNoPayments() //... Loan termLoan = new Loan(commitment,
+riskRating, maturity); //...
+
+First, apply the ``Extract Method'' refactoring on that constructor call
+to produce a public, static method called .
+
+public class CapitalCalculationTests
+
+public void testTermLoanNoPayments() //... Loan termLoan =
+createTermLoan(commitment, riskRating, maturity); //...
+
+public static Loan createTermLoan(double commitment, int riskRating,
+Date maturity) return new Loan(commitment, riskRating, maturity);
+
+Next, apply the ``Move Method'' refactoring on the creation method, , to
+move it to .
+
+public class Loan // ... public static Loan createTermLoan(double
+commitment, int riskRating, Date maturity) return new Loan(commitment,
+riskRating, maturity);
+
+public class CapitalCalculationTest //... public void
+testTermLoanNoPayments() // ... Loan termLoan =
+Loan.createTermLoan(commitment, riskRating, maturity); //...
+
+After doing that, we will need to find all callers of the constructor
+and update them to call . Since now the method is now the only caller on
+the constructor, we can apply the ``Inline Method'' refactoring to this
+constructor.
+
+public static Loan createTermLoan(double commitment, int riskRating,
+Date maturity) return new Loan(commitment, 0.00, riskRating, maturity,
+null);
+
+Repeat the same procedure to the other constructors, to create
+additional creation methods on class .
+
+public static Loan newRevolver(double commitment, Date start, Date
+expiry, int riskRating) return new Loan(commitment, 0, start, expiry,
+null, riskRating, new CapitalStrategyRevolver());
+
+public static Loan newAdvisedLine(double commitment, Date start, Date
+expiry, int riskRating) if (riskRating > 3) return null; Loan
+advisedLine = new Loan(commitment, 0, start, expiry, null, riskRating,
+new CapitalStrategyAdvisedLine()); advisedLine.setUnusedPercentage(0.1);
+return advisedLine;
+
+Last step, since the constructors are only used by creation methods,
+they can become private.
+
+=== Replace State-Altering Conditionals with State
+
+[source,java]
+----
+----
+
+The context class is a class that contains the original state field, a
+field that gets assigned to or compared against a family of constants
+during state transitions. Apply _Replace Type Code with Class_ on the
+original state field such that its type becomes a class. We’ll call that
+new class the state superclass.
+
+The context class is known as State: Context and the state superclass as
+State: State in Design Patterns.
+
+Class has a field called , which is of type String. The first step is to
+change state’s type to be a class by applying the refactoring Replace
+Type Code with Class. This yields the following new class:”
+
+....
+public class PermissionState {
+    private String name;
+    private PermissionState(String name) {
+        this.name = name;
+    }
+
+    public final static PermissionState REQUESTED = new PermissionState("REQUESTED");
+    public final static PermissionState CLAIMED = new PermissionState("CLAIMED");
+    public final static PermissionState GRANTED = new PermissionState("GRANTED");
+    public final static PermissionState DENIED = new PermissionState("DENIED");
+    public final static PermissionState UNIX_REQUESTED = new PermissionState("UNIX_REQUESTED");
+    public final static PermissionState UNIX_CLAIMED = new PermissionState("UNIX_CLAIMED");
+
+    public String toString() {
+        return name;
+    }
+}
+....
+
+image:TypeCodeWithClass.jpg[image]
+
+Each constant in the state superclass now refers to an instance of the
+state superclass. Apply Extract Subclass to produce one subclass (known
+as State: ConcreteState) per constant, then update the constants in the
+state superclass so that each refers to the correct subclass instance of
+the state superclass. Finally, declare the state superclass to be
+abstract.
+
+PermissionState now contains six constants, all of which are instances
+of PermissionState. To make each of these constants an instance of a
+subclass of PermissionState, I apply Extract Subclass [F] six times to
+produce the result shown in the following diagram. ``Because no client
+will ever need to instantiate PermissionState, I declare it to be
+abstract:''
+
+....
+public abstract class PermissionState...
+....
+
+image:extract-subclass.pdf[image]
+
+Find a context class method that changes the value of the original state
+field based on state transition logic. Copy this method to the state
+superclass, making the simplest changes possible to make the new method
+work. (A common, simple change is to pass the context class to the
+method in order to have code call methods on the context class.).
+Finally, replace the body of the context class method with a delegation
+call to the new method.
+
+Repeat this step for every context class method that changes the value
+of the original state field based on state transition logic.
+
+Next, I find a method on SystemPermission that changes the value of
+permission based on state transition logic. There are three such methods
+in SystemPermission: claimedBy(), deniedBy(), and grantedBy(). I start
+by working with claimedBy(). I must copy this method to PermissionState,
+making enough changes to get it to compile and then replacing the body
+of the original claimedBy() method with a call to the new
+PermissionState version:
+
+Choose a state that the context class can enter, and identify which
+state superclass methods make this state transition to other states.
+Copy the identified method(s), if any, to the subclass associated with
+the chosen state and remove all unrelated logic.
+
+Unrelated logic usually includes verifications of a current state or
+logic that transitions to unrelated states.
+
+Repeat for all states the context class can enter.
+
+“In PermissionState, I can now delete the bodies of claimedBy(),
+deniedBy(), and grantedBy(), leaving the following:
+
+abstract class PermissionState public String toString(); public void
+claimedBy(SystemAdmin admin, SystemPermission permission) public void
+deniedBy(SystemAdmin admin, SystemPermission permission) public void
+grantedBy(SystemAdmin admin, SystemPermission permission)
+
+Delete the bodies of each of the methods copied to the state superclass
+during step 3 to produce an empty implementation for each method.

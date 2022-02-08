@@ -3,8 +3,6 @@ package fr.rtp.onemany.refactored;
 import java.awt.Color;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
@@ -14,8 +12,12 @@ import fr.rtp.onemany.ProductSize;
 import fr.rtp.onemany.SizeSpec;
 import fr.rtp.onemany.predicate.PredicateColorSpec;
 import fr.rtp.onemany.predicate.PredicateProductRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class PredicateProductRepositoryTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.*;
+
+public class PredicateProductRepositoryTest  {
 
   private Product fireTruck = new Product("f1234", "Fire Truck", Color.red, 8.95f, ProductSize.MEDIUM);
   private Product barbieClassic = new Product("b7654", "Barbie Classic", Color.yellow, 15.95f, ProductSize.SMALL);
@@ -26,6 +28,7 @@ public class PredicateProductRepositoryTest extends TestCase {
 
   private PredicateProductRepository repository;
 
+  @BeforeEach
   protected void setUp() {
     repository = new PredicateProductRepository();
     repository.add(fireTruck);
@@ -35,13 +38,15 @@ public class PredicateProductRepositoryTest extends TestCase {
     repository.add(toyConvertible);
   }
 
+  @Test
   public void testFindByColor() {
     List<Product> foundProducts = repository.selectBy(new PredicateColorSpec(Color.red));
-    assertEquals("found 2 red products", 2, foundProducts.size());
-    assertTrue("found fireTruck", foundProducts.contains(fireTruck));
-    assertTrue("found Toy Porsche Convertible", foundProducts.contains(toyConvertible));
+    assertEquals( 2, foundProducts.size(), "found 2 red products");
+    assertTrue(foundProducts.contains(toyConvertible), "found Toy Porsche Convertible");
+    assertTrue(foundProducts.contains(fireTruck), "found fireTruck");
   }
 
+  @Test
   public void testFindByColorSizeAndBelowPrice() {
 
     Predicate<Product> andPredicate = Predicates.and( //
@@ -49,6 +54,6 @@ public class PredicateProductRepositoryTest extends TestCase {
         , new PredicateColorSpec(Color.black));
 
     List<Product> foundProducts = repository.selectBy(andPredicate);
-    assertEquals("small red products below $10.00", 0, foundProducts.size());
+    assertEquals(0, foundProducts.size(), "small red products below $10.00");
   }
 }

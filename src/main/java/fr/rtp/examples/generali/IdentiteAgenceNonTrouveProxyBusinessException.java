@@ -5,6 +5,7 @@ public class IdentiteAgenceNonTrouveProxyBusinessException extends BusinessExcep
     private static final long serialVersionUID = -4119208902101467364L;
 
     public IdentiteAgenceNonTrouveProxyBusinessException(String exceptionMessage) {
+        super(exceptionMessage);
     }
 
 }

@@ -1,12 +1,15 @@
 package fr.rtp.onemany;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class ProductRepositoryTest extends TestCase {
+public class ProductRepositoryTest  {
 
   private Product fireTruck = new Product("f1234", "Fire Truck", Color.red, 8.95f, ProductSize.MEDIUM);
   private Product barbieClassic = new Product("b7654", "Barbie Classic", Color.yellow, 15.95f, ProductSize.SMALL);
@@ -17,6 +20,7 @@ public class ProductRepositoryTest extends TestCase {
 
   private ProductRepository repository;
 
+  @BeforeEach
   protected void setUp() {
     repository = new ProductRepository();
     repository.add(fireTruck);
@@ -26,13 +30,15 @@ public class ProductRepositoryTest extends TestCase {
     repository.add(toyConvertible);
   }
 
+  @Test
   public void testFindByColor() {
     List<Product> foundProducts = repository.selectBy(new ColorSpec(Color.red));
-    assertEquals("found 2 red products", 2, foundProducts.size());
-    assertTrue("found fireTruck", foundProducts.contains(fireTruck));
-    assertTrue("found Toy Porsche Convertible", foundProducts.contains(toyConvertible));
+    assertEquals(2, foundProducts.size(), "found 2 red products");
+    assertTrue(foundProducts.contains(fireTruck), "found fireTruck");
+    assertTrue(foundProducts.contains(toyConvertible), "found Toy Porsche Convertible");
   }
 
+  @Test
   public void testFindByColorSizeAndBelowPrice() {
     List<Spec> specs = new ArrayList<Spec>();
     specs.add(new ColorSpec(Color.red));
@@ -40,6 +46,6 @@ public class ProductRepositoryTest extends TestCase {
     specs.add(new BelowPriceSpec(10.00));
 
     List<Product> foundProducts = repository.selectBy(specs);
-    assertEquals("small red products below $10.00", 0, foundProducts.size());
+    assertEquals(0, foundProducts.size(), "small red products below $10.00");
   }
 }

@@ -5,6 +5,7 @@ public class GecBusinessException extends Exception {
     private static final long serialVersionUID = -2314917763515023491L;
 
     public GecBusinessException(String message, BusinessException e, String errorServiceBusiness) {
+        super(message, e);
     }
 
     public static final String ERROR_SERVICE_BUSINESS = null;

@@ -1,13 +1,12 @@
 package fr.rtp.examples.generali;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -19,18 +18,18 @@ public class IntermediaireServiceTest {
     @Mock private IGestionIdentiteAgenceServiceProxy vitrineServiceMock;
 
     
-    @Test @Ignore
+    @Test
     public void should_return_email_from_SALARIE_service_if_email_is_present() throws Exception {
         String codeCompagnie = "aze65q4g6+54", codePortefeuille = "anything";
         String salarieEmail = "notnull@addresse.email";
         ParamsPortefeuille paramPortefeuille = newPortefeuilleWithEmail(salarieEmail);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleSalarie(codeCompagnie))
             .thenReturn(paramPortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(salarieEmail, resolvedEmail);
     }
     
-    @Test @Ignore
+    @Test
     public void should_return_email_from_TRIESTE_service_if_object_from_SALARIE_service_is_null() throws Exception {
         String codePortefeuille = "6zeg54q6g5", codeCompagnie = "aze65q4g6+54";
         String triesteEmail = "notnull@addresse.email";
@@ -39,11 +38,11 @@ public class IntermediaireServiceTest {
              .thenReturn(null);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
             .thenReturn(triestePortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(triesteEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
     public void should_return_email_from_TRIESTE_service_if_email_object_from_SALARIE_service_is_null() throws Exception {
         String codePortefeuille = "6zeg54q6g5", codeCompagnie = "aze65q4g6+54";
         String triesteEmail = "notnull@addresse.email";
@@ -53,11 +52,11 @@ public class IntermediaireServiceTest {
             .thenReturn(salariePortefeuille);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
             .thenReturn(triestePortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(triesteEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
     public void should_return_email_from_TRIESTE_service_if_email_object_from_SALARIE_service_is_empty() throws Exception {
         String codePortefeuille = "6zeg54q6g5", codeCompagnie = "aze65q4g6+54";
         String triesteEmail = "notnull@addresse.email";
@@ -67,11 +66,11 @@ public class IntermediaireServiceTest {
             .thenReturn(salariePortefeuille);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
             .thenReturn(triestePortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(triesteEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
     public void should_return_email_from_TRIESTE_service_if_email_object_from_SALARIE_service_is_whitespace() throws Exception {
         String codePortefeuille = "6zeg54q6g5", codeCompagnie = "aze65q4g6+54";
         String triesteEmail = "notnull@addresse.email";
@@ -81,15 +80,19 @@ public class IntermediaireServiceTest {
             .thenReturn(salariePortefeuille);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
             .thenReturn(triestePortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(triesteEmail, resolvedEmail);
     }
     
-    @Test @Ignore
+    @Test
     public void should_return_intermediaire_email_from_GENERIC_service_if_email_from_VITRINE_is_whitespace() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+", intermediaireEmail = "generic@intermediaire.mail";
         InformationIntermediaire genericInfoIntermediaire = newIntermediaireWithIntermediaireEmail(intermediaireEmail);
+
+        assert genericInfoIntermediaire.getIntermediaire() != null;
+
+
         Bureau bureauFromGeneric = newGenericBureauWithId(codeBureauFromGeneric);
         genericInfoIntermediaire.setBureau(bureauFromGeneric);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
@@ -101,15 +104,20 @@ public class IntermediaireServiceTest {
         Bureau bureauFromVitrine = newVitrineBureauWithEmail("          ");
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(bureauFromVitrine);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(intermediaireEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
     public void should_return_intermediaire_email_from_GENERIC_service_if_email_from_VITRINE_is_empty() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+", intermediaireEmail = "generic@intermediaire.mail";
         InformationIntermediaire genericInfoIntermediaire = newIntermediaireWithIntermediaireEmail(intermediaireEmail);
+
+
+        //if (genericInfoIntermediaire.getIntermediaire() == null) System.out.println("MERDE");
+
+
         Bureau bureauFromGeneric = newGenericBureauWithId(codeBureauFromGeneric);
         genericInfoIntermediaire.setBureau(bureauFromGeneric);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
@@ -121,11 +129,11 @@ public class IntermediaireServiceTest {
         Bureau bureauFromVitrine = newVitrineBureauWithEmail("");
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(bureauFromVitrine);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(intermediaireEmail, resolvedEmail);
     }
     
-    @Test @Ignore
+    @Test
     public void should_return_intermediaire_email_from_GENERIC_service_if_email_from_VITRINE_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+", intermediaireEmail = "generic@intermediaire.mail";
@@ -141,11 +149,11 @@ public class IntermediaireServiceTest {
         Bureau bureauFromVitrine = newVitrineBureauWithEmail(null);
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(bureauFromVitrine);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(intermediaireEmail, resolvedEmail);
     }
     
-    @Test @Ignore
+    @Test
     public void should_return_intermediaire_email_from_GENERIC_service_if_object_from_VITRINE_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+", intermediaireEmail = "generic@intermediaire.mail";
@@ -160,11 +168,12 @@ public class IntermediaireServiceTest {
             .thenReturn(genericInfoIntermediaire);
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(null);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(intermediaireEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_bureau_email_from_VITRINE_service_if_email_from_GENERIC_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+";
@@ -181,11 +190,12 @@ public class IntermediaireServiceTest {
         Bureau bureauFromVitrine = newVitrineBureauWithEmail(emailFromVitrine);
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(bureauFromVitrine);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(emailFromVitrine, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_bureau_email_from_VITRINE_service_if_email_from_GENERIC_is_empty() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+", emailFromVitrine = "email@vitrine.com";
@@ -201,11 +211,12 @@ public class IntermediaireServiceTest {
         Bureau bureauFromVitrine = newVitrineBureauWithEmail(emailFromVitrine);
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(bureauFromVitrine);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(emailFromVitrine, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_bureau_email_from_VITRINE_service_if_email_from_GENERIC_is_whitespace() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+", emailFromVitrine = "email@vitrine.com";
@@ -221,11 +232,12 @@ public class IntermediaireServiceTest {
         Bureau bureauFromVitrine = newVitrineBureauWithEmail(emailFromVitrine);
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(bureauFromVitrine);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(emailFromVitrine, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_null_email_from_if_object_from_GENERIC_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String codeBureauFromGeneric = "qz3rg54se6rh354+";
@@ -239,11 +251,12 @@ public class IntermediaireServiceTest {
         Bureau bureauFromVitrine = newVitrineBureauWithEmail(emailFromVitrine);
         when(vitrineServiceMock.recupererInfosAgence(codeBureauFromGeneric))
             .thenReturn(bureauFromVitrine);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertNull(resolvedEmail);
     }
     
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_bureau_email_from_GENERIC_service_if_param_object_from_DIRECT_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String intermediaireEmail = "generic@intermediaire.mail";
@@ -255,11 +268,12 @@ public class IntermediaireServiceTest {
             .thenReturn(null);
         when(genericServiceMock.getInformationIntermediaire(codeCompagnie, codePortefeuille))
             .thenReturn(genericInfoIntermediaire);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(intermediaireEmail, resolvedEmail);
     }
     
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_bureau_email_from_GENERIC_service_if_email_from_DIRECT_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String intermediaireEmail = "generic@intermediaire.mail";
@@ -272,45 +286,54 @@ public class IntermediaireServiceTest {
             .thenReturn(directParamPortefeuille);
         when(genericServiceMock.getInformationIntermediaire(codeCompagnie, codePortefeuille))
             .thenReturn(genericInfoIntermediaire);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(intermediaireEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_bureau_email_from_GENERIC_service_if_email_from_DIRECT_is_empty() throws Exception {
-        String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
+        String codePortefeuille = "qze6g5qr6";
+        String codeCompagnie = "qze3g21qse3h1+54";
         String intermediaireEmail = "generic@intermediaire.mail";
+
         ParamsPortefeuille triesteParamPortefeuille = newPortefeuilleWithEmail(null);
         ParamsPortefeuille directParamPortefeuille = newPortefeuilleWithEmail("");
         InformationIntermediaire genericInfoIntermediaire = newIntermediaireWithBureauEmail(intermediaireEmail);
+
+
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
         .thenReturn(triesteParamPortefeuille);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleDirect(codeCompagnie, codePortefeuille))
         .thenReturn(directParamPortefeuille);
         when(genericServiceMock.getInformationIntermediaire(codeCompagnie, codePortefeuille))
         .thenReturn(genericInfoIntermediaire);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(intermediaireEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
+    @Disabled
     public void should_return_bureau_email_from_GENERIC_service_if_email_from_DIRECT_is_whitespace() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String intermediaireEmail = "generic@intermediaire.mail";
         ParamsPortefeuille triesteParamPortefeuille = newPortefeuilleWithEmail(null);
         ParamsPortefeuille directParamPortefeuille = newPortefeuilleWithEmail("     ");
         InformationIntermediaire genericInfoIntermediaire = newIntermediaireWithBureauEmail(intermediaireEmail);
+
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
         .thenReturn(triesteParamPortefeuille);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleDirect(codeCompagnie, codePortefeuille))
         .thenReturn(directParamPortefeuille);
         when(genericServiceMock.getInformationIntermediaire(codeCompagnie, codePortefeuille))
         .thenReturn(genericInfoIntermediaire);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
+
         assertEquals(intermediaireEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
     public void should_return_email_from_DIRECT_service_if_email_from_TRIESTE_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String directEmail = "direct@addresse.mail";
@@ -320,25 +343,28 @@ public class IntermediaireServiceTest {
             .thenReturn(triesteParamPortefeuille);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleDirect(codeCompagnie, codePortefeuille))
             .thenReturn(directParamPortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(directEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test //@Ignore
     public void should_return_email_from_DIRECT_service_if_email_from_TRIESTE_is_empty() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String directEmail = "direct@addresse.mail";
         ParamsPortefeuille triesteParamPortefeuille = newPortefeuilleWithEmail("");
         ParamsPortefeuille directParamPortefeuille = newPortefeuilleWithEmail(directEmail);
+
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleTrieste(codeCompagnie, codePortefeuille))
             .thenReturn(triesteParamPortefeuille);
+
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleDirect(codeCompagnie, codePortefeuille))
             .thenReturn(directParamPortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(directEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test //@Ignore
     public void should_return_email_from_DIRECT_service_if_email_from_TRIESTE_is_whitespace() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String directEmail = "direct@addresse.mail";
@@ -348,11 +374,11 @@ public class IntermediaireServiceTest {
         .thenReturn(triesteParamPortefeuille);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleDirect(codeCompagnie, codePortefeuille))
         .thenReturn(directParamPortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(directEmail, resolvedEmail);
     }
 
-    @Test @Ignore
+    @Test
     public void should_return_email_from_DIRECT_service_if_params_object_from_TRIESTE_is_null() throws Exception {
         String codePortefeuille = "qze6g5qr6", codeCompagnie = "qze3g21qse3h1+54";
         String directEmail = "direct@addresse.mail";
@@ -361,12 +387,12 @@ public class IntermediaireServiceTest {
             .thenReturn(null);
         when(paramsPortefeuilleServiceMock.getParamsPortefeuilleDirect(codeCompagnie, codePortefeuille))
             .thenReturn(directParamPortefeuille);
-        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codePortefeuille, codeCompagnie);
+        String resolvedEmail = service.getGestionnaireEmailForDeclaration(codeCompagnie, codePortefeuille);
         assertEquals(directEmail, resolvedEmail);
     }
     
     
-    @Before
+    @BeforeEach
     public void initBeforeTest() throws Exception {
         initMocks(this);
         service = new IntermediaireService();
@@ -391,6 +417,7 @@ public class IntermediaireServiceTest {
         Bureau bureau = new Bureau();
         bureau.setEmail(intermediaireEmail);
         infoIntermediaire.setBureau(bureau);
+        infoIntermediaire.setIntermediaire(new Intermediaire());
         return infoIntermediaire;
     }
 
@@ -399,6 +426,7 @@ public class IntermediaireServiceTest {
         Intermediaire intermediaire = new Intermediaire();
         intermediaire.setEmail(intermediaireEmail);
         infoIntermediaire.setIntermediaire(intermediaire);
+
         return infoIntermediaire;
     }
 

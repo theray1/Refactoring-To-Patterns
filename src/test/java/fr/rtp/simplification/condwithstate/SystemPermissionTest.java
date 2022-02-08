@@ -1,9 +1,9 @@
 package fr.rtp.simplification.condwithstate;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SystemPermissionTest {
 
@@ -14,12 +14,12 @@ public class SystemPermissionTest {
   public void grantedBy() throws Exception {
     SystemAdmin systemAdmin = new SystemAdmin();
     permission.grantedBy(systemAdmin);
-    assertEquals("requested", permission.REQUESTED, permission.state());
-    assertEquals("not granted", false, permission.isGranted());
+    assertEquals(permission.REQUESTED, permission.state(), "requested");
+    assertEquals(false, permission.isGranted(), "not granted");
     permission.claimedBy(systemAdmin);
     permission.grantedBy(systemAdmin);
-    assertEquals("granted", permission.GRANTED, permission.state());
-    assertEquals("granted", true, permission.isGranted());
+    assertEquals(permission.GRANTED, permission.state(), "granted");
+    assertEquals(true, permission.isGranted(), "granted");
   }
 
   @SuppressWarnings("static-access")
@@ -27,15 +27,15 @@ public class SystemPermissionTest {
   public void deniedBy() throws Exception {
     SystemAdmin systemAdmin = new SystemAdmin();
     permission.deniedBy(systemAdmin);
-    assertEquals("requested", permission.REQUESTED, permission.state());
-    assertEquals("not granted", false, permission.isGranted());
+    assertEquals(permission.REQUESTED, permission.state(), "requested");
+    assertEquals(false, permission.isGranted(), "not granted");
     permission.claimedBy(systemAdmin);
     permission.deniedBy(systemAdmin);
-    assertEquals("denied", permission.DENIED, permission.state());
-    assertEquals("denied", false, permission.isGranted());
+    assertEquals(permission.DENIED, permission.state(), "denied");
+    assertEquals(false, permission.isGranted(), "denied");
   }
 
-  @Before
+  @BeforeEach
   public void initBeforeTest() throws Exception {
     SystemUser user = new SystemUser();
     SystemProfile profile = new SystemProfile();
