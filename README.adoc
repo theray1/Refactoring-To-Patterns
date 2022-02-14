@@ -1,15 +1,20 @@
+:icons: font
+:experimental:
 = Refactoring to Patterns
-== Refactoring to Patterns
 
-=== Code Simplification
+- IntelliJ
+- Never break the build
 
-==== Introduce Compose Method
+== Code Simplification
 
-The ``Compose
-Methodfootnote:[http://c2.com/ppr/wiki/WikiPagesAboutRefactoring/ComposedMethod.html]''
+=== Introduce Compose Method
+
+The "Compose
+Method"footnote:[http://c2.com/ppr/wiki/WikiPagesAboutRefactoring/ComposedMethod.html]
 pattern is about producing methods that efficiently communicate what
 they do and how they do what they do. According to Kent Beck:
 
+[cite, Kent Beck]
 ____
 «Divide your program into methods that perform one identifiable task.
 Keep all of the operations in a method at the same level of abstraction.
@@ -18,83 +23,154 @@ few lines long.»
 ____
 
 A Composed Method consists of calls to well-named methods that are all
-at the same level of detail. Follow the instructions below to simplify
-the method  :
+at the same level of detail. 
+Follow the instructions below to simplify
+the method `add()` from class `ArrayList`:
+
+
+.The ArrayList Class
+[source,java]
+----
+include::src/main/java/fr/rtp/util/ArrayList.java[]
+----
+
+The `ArrayList` class is composed of three parts:
+
+<1> The _read only_ check part
+<2> The grow part
+<3> The actual add behavior part
+
+==== Guard Clauses
+
+[sidebar]
+.To-Do
+--
+Invert the "readonly"  check to introduce a "Guard Clause".
+
+[quote]
+____
+A guard clause is simply a check (the inverted `if`) that immediately exits the function, either with a `return` statement or an exception. Using guard clauses, the possible error cases are identified and there is the respective handling by returning or throwing an adequate exception.
+____
+
+TIP: For more information about Guard Clauses, read the refactoring https://refactoring.guru/fr/replace-nested-conditional-with-guard-clauses[Replace Nested Conditinal with Guard Clauses].
+--
+
+==== Extract Private Method
+
+[sidebar]
+.To-Do
+--
+Apply the _Extract Method_ refactoring operation to replace the two lines (18-19) that actually adds an element and create the private method `void addElement(Object obj)`.
+
+TIP: To use the _Extract Method_ refactoring, first select le lines you want to place in a different method, then go to menu:Refactor[Extract/Introduce > Method...] and name the new method.
+--
+
+==== Replace Magic Numbers
+.To-Do
+[sidebar]
+--
+Apply the _Extract Constant_ refactoring operation to replace the magic number `10` and introduce an "Explanatory Variable" named `GROWTH_INCREMENT`.
+
+[quote, Kent Beck]
+____
+Explanatory variables are variables with meaningful names, which held intermediate values of complex calculations to break them up.
+
+The simple use of explanatory variables makes it clear that the first matched group is the key, and the second matched group is the value.
+____
+
+TIP: To use the _Extract Constant_ refactoring operation, first select the value (10), then go to menu:Refactor[Extract/Introduce > Constant...] and name the new constant.
+--
+
+==== Extract Private Method Again
+
+[sidebar]
+.To-Do
+--
+Apply the _Inline variable_ refactoring operation to `newSize` and then apply the _Extract
+Method_ refactoring operation  to the code that checks whether the `element`  array is at its capacity and needs to grow, and create the method `atCapacity()`.
+
+In other words, replace the boolean expression of the `if` statement by the call of `atCapacity()`.
+
+TIP: To inline a variable, select its usage (not its definition) and go to menu:Refactor[Inline Variable]
+
+--
+
+==== Extract the `grow()` Method
+
+[sidebar]
+.To-Do
+--
+Finally, apply the __Extract Method__ operation to the part of the code that grows the size of the array, creating the `grow()` private method.
+--
+
+==== Final code
+
+After applying all the previous refactoring operations, your code should look like:
 
 [source,java]
 ----
-----
-
-Invert the ``readonly'' check to a ``Guard Clause''.
-
-....
-if (readOnly) {
+public void add(Object child) {
+    if (readOnly) {
         return;
     }
-....
-
-Apply the ``Extract Method'' operation to lines 18-19 and create the
-method .
-
-Apply the ``Extract Constant'' operation to replace the magic number
-``10 '' and introduce an ``Explaining Variable'' called .
-
-Apply the ``Inline variable'' operation to and then apply the ``Extract
-Method'' operation again to the code that checks whether the element
-array is at its capacity and needs to grow, and create the method .
-
-Finally, apply the ``Extract Method'' operation to the code that grows
-the size of the array, creating the method.
-
-[source,java]
-----
+    if (atCapacity()) {
+        grow();
+    }
+    addElement(child);
+}
 ----
 
-==== Replace Conditional Logic with Strategy
+=== Replace Conditional Logic with Strategy
 
-The Strategy pattern defines a family of algorithms, encapsulates each
-algorithm, and make them interchangeable, letting the algorithm vary
-independently from clients that use it. We can apply this pattern to
-classes where several methods have similar structure: a sequence of
-similar conditions. For instance, let us consider the
+The https://naomod.univ-nantes.io/patterns/strategy.html[Strategy Design Pattern] defines a family of algorithms, encapsulates each algorithm, and make them interchangeable, letting the algorithm vary independently of the clients that use it.
+
+We can apply this pattern to classes where several methods have similar structure: a sequence of similar conditions.
+
+For instance, let us consider the `Loan`
 classfootnote:[http://www.informit.com/articles/article.aspx?p=1398607&seqNum=2],
-from Joshua Kerievsky’s book , presented in
-Listing #lst:loan[[lst:loan]].
+from Joshua Kerievsky’s book <<rtp>>:
 
 [source,java]
 ----
+include::src/main/java/fr/rtp/loan/Loan.java[]
 ----
 
-This class deals with calculating capital for three different kinds of
-bank loans:
+This class deals with calculating capital for three different kinds of bank loans:
 
 Term loan::
-: a loan from a bank for a specific amount that has a specified
-repayment schedule and a fixed or floating interest rate.
+A loan from a bank for a specific amount that has a specified repayment schedule and a fixed or floating interest rate.
 Revolver::
-: a credit that is automatically renewed as debts are paid off; and
+A credit that is automatically renewed as debts are paid off.
 Advised line::
-: a credit that a financial institution approves and maintains for a
-customer.
+A credit that a financial institution approves and maintains for a customer.
 
-Much of the logic of methods and deals with figuring out whether the
-loan is a term loan, a revolver, or an advised line. For example, a null
-expiry date and a non-null maturity date indicate a term loan. A null
-maturity and a non-null expiry date indicate a revolver loan.
+Much of the logic of methods and deals with figuring out whether the loan is a term loan, a revolver, or an advised line.
 
-In this exercise, we will use the Strategy pattern to simplify the
-calculation of the loan’s capital.
+For example, a `null` expiry date and a non-`null` maturity date indicate a term loan.
+A `null` maturity and a non-`null` expiry date indicate a revolver loan.
 
-First, create a class called and add a method called , with an empty
-body.
+In this exercise, we will use the Strategy Design Pattern to simplify the calculation of the loan’s capital.
 
-....
-public class CapitalStrategy {
-    public double capital(Loan loan) {
-        return 0.0;
-    }
+==== Create the `CapitalStrategy` class
+
+[sidebar]
+.To-Do
+--
+. Create an empty class named `CapitalStrategy`.
+. Add a field named `strategy` to class `Loan`.
+
+[source, java]
+.The empty `CapitalStrategy`class and its usage
+----
+public class CapitalStrategy {}
+public class Loan {
+    private CapitalStrategy strategy;
+    // (...)
 }
-....
+----
+--
+
+
 
 Now, apply the ``Move Method'' refactoring operation to move the method
 to class . This involves:
@@ -499,3 +575,9 @@ grantedBy(SystemAdmin admin, SystemPermission permission)
 
 Delete the bodies of each of the methods copied to the state superclass
 during step 3 to produce an empty implementation for each method.
+
+[bibliography]
+== References
+
+* [[[rtp, 1]]] Andy Hunt & Dave Thomas. The Pragmatic Programmer:
+From Journeyman to Master. Addison-Wesley. 1999.
