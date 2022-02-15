@@ -2,11 +2,6 @@ package fr.rtp.creation.creationmethods;
 
 import java.util.Date;
 
-/**
- * Chapter 6 - Creation
- * 
- * Replace construction with creations methods 
- */
 public class Loan {
 
     double commitment;
@@ -15,10 +10,6 @@ public class Loan {
     Date maturity;
     Date expiry;
     CapitalStrategy capitalStrategy;
-
-    public Loan(double commitment, int riskRating, Date maturity) {
-        this(commitment, 0.00, riskRating, maturity, null);
-    }
 
     public Loan(double commitment, int riskRating, Date maturity, Date expiry) {
         this(commitment, 0.00, riskRating, maturity, expiry);
@@ -33,7 +24,7 @@ public class Loan {
     }
 
     public Loan(CapitalStrategy capitalStrategy, double commitment, double outstanding, int riskRating, Date maturity,
-            Date expiry) {
+                Date expiry) {
         this.commitment = commitment;
         this.outstanding = outstanding;
         this.riskRating = riskRating;
@@ -49,5 +40,9 @@ public class Loan {
             else
                 this.capitalStrategy = new CapitalStrategyRCTL();
         }
+    }
+
+    public static Loan createTermLoan(Date maturity, int riskRating, double commitment) {
+        return new Loan(commitment, 0.00, riskRating, maturity, null);
     }
 }

@@ -344,7 +344,8 @@ public class Loan {
 . icon:hand[] Move, using Cut&Paste, fields `today`, `MILLIS_PER_DAY` and `DAYS_PER_YEAR` to class CapitalStrategy
 . icon:hand[]  Copy, using Copy&Paste, method `yearsTo()` to class `CapitalStrategy`.
 .. Change the visibility of the new method to `protected`.
-. Replace the body of the original method with a delegation to the new method
+. Replace the body of the original method with a delegation to the new method.
+. Run all tests and check that the code works and before the changes.
 
 .Method Loan::yearsTo() after changes
 [source,java]
@@ -364,296 +365,331 @@ protected double yearsTo(Date endDate) {
 ----
 ****
 
-....
-public class LoanRefactored {
-    // (...)
+==== Move method duration() to CapitalStrategy
 
-    public double capital() {
-        return new CapitalStrategy().capital(this);
-    }
-    // (...)
-    protected double riskFactor() {
-        return RiskFactor.getFactors().forRating(riskRating);
-    }
+.To-Do
+****
+NOTE: Here we will use a different approach to move a method from one class to another, without using Copy&Paste
 
-    protected double unusedRiskFactor() {
-        return UnusedRiskFactors.getFactors().forRating(riskRating);
-    }
+. Change the visibility of method `weightedAverageDuration()` to `protected`.
 
-    protected double getUnusedPercentage() {
-        return 0.0;
-    }
+. Select all the lines of the body of method `duration()`.
 
-    protected Date getMaturity() {
-        return maturity;
-    }
+. Go to menu:Refactor[Extract/Introduce > Method...] and extract the new method.
+.. Use a temporary name for the method, `extracted()` is just fine.
 
-    protected Date getExpiry() {
-        return expiry;
-    }
+. Go to menu:Refactor[Move Instance Method] to move the new method to class `CapitalStrategy`.
+.. Do not worry about the visibility warnings.
 
-    protected double getCommitment() {
-        return commitment;
-    }
+. icon:hand[] Replace `loan` by `this` in the new method, when the method already exists in class `CapitalStrategy`
++
+|===
+|Replace | by
 
-    protected List<Payment> getPayments() {
-        return payments;
-    }
+| `loan.getExpiry()`
+| `this.getExpiry()`
+
+| `loan.getMaturity()`
+| `this.getMaturity()`
+
+| `loan.yearsTo(loan.getExpiry())`
+| `this.yearsTo(this.getExpiry())`
+|===
+
+. Select the new method name, go to menu:Refactor[Rename...] and rename it to `duration()`.
+
+. Run all tests and check that the code works and before the changes.
+
+.Method `Loan::duration()` after changes
+[source,java]
+----
+----
+****
+
+==== Move method capital() to CapitalStrategy
+
+.To-Do
+****
+. Move method `outstandingRiskAmount()`
+.. This method has two method calls: `getCommitment()` and `getOutstanding()`.
+.. Inline these calls:
+... Click on the first method call then go to menu:Refactor[Inline Method...]
+... Choose "Inline this only and keep the method"
+... Do the same with the second method call.
++
+.Method `outstandingRiskAmount()` after inlines
+[source,java]
+----
+private double unusedRiskAmount() {
+    return (strategy.getCommitment() - strategy.getOutstanding());
 }
+----
+.. Click on the name of method `outstandingRiskAmount()`.
+.. Go to menu:Refactor[Move Instance Method...] and move method to class `CapitalStrategy`.
+.. Choose visibility "Escalate" and let IntelliJ choose the appropriate visibility.
 
-public class CapitalStrategy {
-    public double capital(LoanRefactored loan) {
-        if (loan.getExpiry() == null && loan.getMaturity() != null)
-            return loan.getCommitment() * loan.duration() * loan.riskFactor();
-        if (loan.getExpiry() != null && loan.getMaturity() == null) {
-            if (loan.getUnusedPercentage() != 1.0)
-                return loan.getCommitment() *loan.getUnusedPercentage() * loan.duration() * loan.riskFactor();
-            else
-                return (loan.outstandingRiskAmount() * loan.duration() * loan.riskFactor())
-                        + (loan.unusedRiskAmount() * loan.duration() * loan.unusedRiskFactor());
-        }
-        return 0.0;
+. Move method `outstandingRiskAmount()`
+.. Inline the only method call
+.. Move method to class `CapitalStrategy`.
+
+. Move method `riskFactor()`
+.. Inline the method call `getRiskRating()`
+.. Move method to class `CapitalStrategy`.
+
+. Move method `unusedRiskFactor()`
+.. Inline the method call `getRiskRating()`
+.. Move method to class `CapitalStrategy`.
+
+. Move method  `getUnusedPercentage()`
+.. Go to menu:Refactor[Move Instance Method...] and move method to `Capital Strategy`
+
+. Finally, move method `capital()`
+.. Inline all method calls
++
+.Method capital() after inlines and before move
+[source, java]
+----
+public double capital() {
+    if (strategy.getExpiry() == null && strategy.getMaturity() != null) // Term Loan
+        return strategy.getCommitment() * strategy.duration(this) * strategy.riskFactor();
+    if (strategy.getExpiry() != null && strategy.getMaturity() == null) {
+        if (strategy.getUnusedPercentage() != 1.0) // Revolver
+            return strategy.getCommitment() * strategy.getUnusedPercentage() * strategy.duration(this) * strategy.riskFactor();
+        else // Advised Line
+return (strategy.outstandingRiskAmount() * strategy.duration(this) * strategy.riskFactor())
++ (this.strategy.unusedRiskAmount() * strategy.duration(this) * strategy.unusedRiskFactor());
     }
+    return 0.0;
 }
-....
+----
 
-Apply the ``Move Method'' refactoring operation again to move the method
-to class .
+.. Select the method body (all method code lines) and go to menu:Refactor[Extract/Introduce > Method]
+... Choose a temporary name for the method, for instance `extractedCapital()`
+.. Click on the name of the new method and go to menu:Refactor[Move Instance Method...] and move it to class `CapitalStrategy`
+.. Rename the new method to `capital()`
 
-....
-public double duration(LoanRefactored loan) {
-        if (loan.getExpiry() == null && loan.getMaturity() != null)
-            return this.weightedAverageDuration(loan);
-        else if (loan.getExpiry() != null && loan.getMaturity() == null)
-            return loan.strategy.yearsTo(loan.getExpiry(), loan);
-        return 0.0;
+. In the end, you should have the following code:
++
+.Method Loan::capital() after changes
+[source,java]
+----
+public double capital() {
+    return strategy.capital(this);
+}
+----
++
+.Method CapitalStrategy::capital() after changes
+[source,java]
+----
+double capital(Loan loan) {
+    if (getExpiry() == null && getMaturity() != null) // Term Loan
+        return getCommitment() * duration(loan) * riskFactor();
+    if (getExpiry() != null && getMaturity() == null) {
+        if (getUnusedPercentage() != 1.0) // Revolver
+            return getCommitment() * getUnusedPercentage() * duration(loan) * riskFactor();
+        else // Advised Line
+            return (outstandingRiskAmount() * duration(loan) * riskFactor())
+                    + (unusedRiskAmount() * duration(loan) * unusedRiskFactor());
     }
-....
+    return 0.0;
+}
+----
+. Run all tests and check that the code works and before the changes.
+****
 
-Since some methods, such as , , , and are only used by method , we can
-move them to class as well. The two constants, and can also be moved to
-class .
+==== Replace Conditional with Polymorphism
 
-* After these refactorings, the code should be:
+Now that we migrated methods `capital()` and `duration()` to `CapitalStrategy`, we will create the classes that play the _Concrete Strategy_ roles and move that methods to these classes.
 
+.To-Do
+****
+. Create the _Concrete Strategy_ classes
+.. Create the classes `RevolverStrategy`, `TermLoanStrategy`, and `AdvisedLineStrategy`.
+.. Make them subclasses of `CapitalStrategy`.
+.. Go to menu:Code[Generate... > Constructor] to add a constructor to these classes.
+
+. Instantiate the correct strategy for a Loan.
+.. Modify the constructors of class `Loan` and make them instantiate the correct strategy.
++
+[NOTE]
+====
+According to the code:
+
+* When `expiry` is `null`, the strategy should be "Term Loan".
+* When `expiry` is not `null` and `maturity` is `null`, the strategy should be "Revolver".
+* Otherwise, the strategy should be "Advised Line".
+====
+
+. Make classe `CapitalStrategy` abstract.
+. Push down method `capital()`
+.. Click on the method name, then go to menu:Refactor[Push Members Down...]
+.. Add an abstract method `capital()` to class `CapitalStrategy`.
+
+. Open class `RevolverStrategy` and remove the parts of code that do not concern a revolver loan
++
+.Method RevolverStrategy::capital() after changes
 [source,java]
 ----
+double capital(Loan loan) {
+    return getCommitment() * getUnusedPercentage() * duration(loan) * riskFactor();
+}
 ----
 
+. Open class `TermLoanStrategy` and remove the parts of code that do not concern a revolver loan
++
+.Method TermLoanStrategy::capital() after changes
 [source,java]
 ----
+double capital(Loan loan) {
+    return getCommitment() * duration(loan) * riskFactor();
+}
 ----
 
-Finally, apply the ``Replace Conditional with Polymorphism ''
-refactoring operation on method method. First, create a subclass named
-for the capital calculation for a term loan. Then, move and adapt
-methods , , and to the subclass.
-
-....
-public class CapitalStrategyTermLoan extends CapitalStrategy {
-   public double capital(Loan loan) {
-      return loan.getCommitment() * duration(loan) * riskFactorFor(loan);
-   }
-
-   public double duration(Loan loan) {
-      return weightedAverageDuration(loan);
-   }
-
-   private double weightedAverageDuration(Loan loan) {
-      double duration = 0.0;
-      double weightedAverage = 0.0;
-      double sumOfPayments = 0.0;
-      Iterator loanPayments = loan.getPayments().iterator();
-      while (loanPayments.hasNext()) {
-         Payment payment = (Payment)loanPayments.next();
-         sumOfPayments += payment.amount();
-         weightedAverage += yearsTo(payment.date(), loan) * payment.amount();
-      }
-      if (loan.getCommitment() != 0.0)
-         duration = weightedAverage / sumOfPayments;
-      return duration;
-   }
-....
-
-In the end, class is abstract:
-
+. Open class `AdvisedLineStrategy` and remove the parts of code that do not concern a revolver loan
++
+.Method AdvisedLineStrategy::capital() after changes
 [source,java]
 ----
+double capital(Loan loan) {
+    return (outstandingRiskAmount() * duration(loan) * riskFactor())
++ (unusedRiskAmount() * duration(loan) * unusedRiskFactor());
+}
 ----
+
+. Repeat the same operations for method `CapitalStrategy::duration()`
+
+. Run all tests and check that the code works and before the changes.
+****
 
 === Chain Constructors
 
 Classes may have several constructors: this is normal, as there may be
-different ways to instantiate objects of a same class. However, when
-there is duplicated code across two or more contacts, maintenance
-problems arise.
+different ways to instantiate objects of a same class.
+However, maintenance problems arise when code snippets are duplicated across the code source.
 
-Consider the three constructors of class  , presented in
-Listing #lst:loan:constructors[[lst:loan:constructors]], which have
-duplicated code. We will use the refactoring operation named ``Chain
-Constructors'', whose goal is to remove duplication in constructors by
-making them call each other.
+Consider the three constructors of class `BankLoan` presented in listing <<lst:bankloan>>, which have duplicated code.
+We will use the refactoring operation named _Chain Constructors_,
+whose goal is to remove duplication in constructors by making them call each other.
 
-First, we analyze these constructors to find out which one is the
-``catch-all constructor'', the one that handles all of the construction
-details. It seems that it should be constructor 3, since making
-constructors 1 and 2 call 3 can be achieved with a minimum amount of
-work.
+First, we analyze these constructors to find out which one is the *catch-all constructor*,
+the one that handles all the construction details.
+It seems that it should be constructor 3,
+since making constructors 1 and 2 call 3 can be achieved with a minimum amount of work.
 
-....
-public Loan(float notional, float outstanding, int rating, Date expiry) {
-   this.strategy = new TermROC();
-   this.notional = notional;
-   this.outstanding = outstanding;
-   this.rating = rating;
-   this.expiry = expiry;
+.Class BankLoan
+[source#lst:bankloan,java]
+----
+include::src/main/java/fr/rtp/utilities/chainconstructors/BankLoan.java[]
+----
+
+.To-Do
+****
+. Change constructor 1 to make it call constructor 3.
+. Change constructor 2 to make it also call constructor 3.
+
+.BankLoan class after changes
+[source,java]
+----
+public class BankLoan {
+    // (...)
+    public BankLoan(float national, float outstanding, int rating, Date expiry) {
+        this(new TermROC(), national, outstanding, rating, expiry, null);
+    }
+
+    public BankLoan(float national, float outstanding, int rating, Date expiry, Date maturity) {
+        this(new RevolvingTermROC(), national, outstanding, rating, expiry, maturity);
+    }
+
+    public BankLoan(BankCapitalStrategy strategy, float national, float outstanding, int rating, Date expiry, Date maturity) {
+        this.strategy = strategy;
+        this.national = national;
+        this.outstanding = outstanding;
+        this.rating = rating;
+        this.expiry = expiry;
+        this.maturity = maturity;
+    }
 }
-
-public Loan(float notional, float outstanding, int rating, Date expiry, Date maturity) {
-   this.strategy = new RevolvingTermROC();
-   this.notional = notional;
-   this.outstanding = outstanding;
-   this.rating = rating;
-   this.expiry = expiry;
-   this.maturity = maturity;
-}
-
-public Loan(CapitalStrategy strategy, float notional, float outstanding, int rating, Date expiry, Date maturity) {
-   this.strategy = strategy;
-   this.notional = notional;
-   this.outstanding = outstanding;
-   this.rating = rating;
-   this.expiry = expiry;
-   this.maturity = maturity;
-}
-....
-
-Change constructor 1 to make it call constructor 3.
-
-public Loan(float notional, float outstanding, int rating, Date expiry)
-this(new TermROC(), notional, outstanding, rating, expiry, null);
-
-Now, change constructor 2 to make it also call constructor 3.
-
-public Loan(float notional, float outstanding, int rating, Date expiry,
-Date maturity) this(new RevolvingTermROC(), notional, outstanding,
-rating, expiry, maturity);
+----
+****
 
 === Replace Constructors with Creation Methods
 
-The goal of the ``Replace Constructors with Creation Methods''
-refactoring operation is to replace constructors with
-intention-revealing creation methods that return object instances.
+The goal of the _Replace Constructors with Creation Methods_ refactoring operation is to replace constructors with intention-revealing creation methods that return object instances.
 
-Creation methods have at least two advantages, that cannot be achieved
-in Java. First, they can have different names and thus communicate
-intention efficiently. Second, creation methods can have the same number
-of parameters.
+[IMPORTANT]
+====
+_Creation Method_ is a generic term to designate any method that creates instances of a class.
+For instance, the https://refactoring.guru/design-patterns/factory-method[Factory Method] and
+the https://refactoring.guru/design-patterns/builder[Builder] Design Patterns use _Creation Methods_.
+====
 
-We will apply this refactoring to improve the constructions of class .
-Consider another version of class , presented in
-Listing #lst:load:constructors:bis[[lst:load:constructors:bis]].
+Creation methods have at least two advantages, that cannot be achieved in Java.
+First, they can have different names and thus communicate intention efficiently.
+Second, different creation methods can have the same number of parameters.
 
-....
-public class Loan {
+We will apply this refactoring to improve the constructions of class `Loan`.
+Consider the source code of this class, presented below.
 
-    double commitment;
-    double outstanding;
-    int riskRating;
-    Date maturity;
-    Date expiry;
-    CapitalStrategy capitalStrategy;
+[source,java]
+----
+include::src/main/java/fr/rtp/creation/creationmethods/Loan.java[]
+----
 
-    public Loan(double commitment, int riskRating, Date maturity) {
-        this(commitment, 0.00, riskRating, maturity, null);
-    }
+.To-Do
+****
+. To apply this refactoring, we need to find a code that calls one of these constructors. For instance, in a test case, such as link:./src/test/java/fr/rtp/creation/creationmethods/CapitalCalculationTest.java[CapitalCalculationTest]
 
-    public Loan(double commitment, int riskRating, Date maturity, Date expiry) {
-       this(commitment, 0.00, riskRating, maturity, expiry);
-    }
+. Create Creation Method
+.. Select the code that creates an instance of `Loan`, i.e. `new Loan(commitment,
+riskRating, maturity)`
+.. Go to menu:Refactor[Extract/Introduce > Method...]. Name the method `createTermLoan()`
 
-    public Loan(double commitment, double outstanding, int riskRating, Date maturity, Date expiry) {
-        this(null, commitment, outstanding, riskRating, maturity, expiry);
-    }
-
-    public Loan(CapitalStrategy capitalStrategy, double commitment, int riskRating, Date maturity, Date expiry) {
-        this(capitalStrategy, commitment, 0.00, riskRating, maturity, expiry);
-    }
-
-    public Loan(CapitalStrategy capitalStrategy, double commitment, double outstanding, int riskRating, Date maturity,
-            Date expiry) {
-        this.commitment = commitment;
-        this.outstanding = outstanding;
-        this.riskRating = riskRating;
-        this.maturity = maturity;
-        this.expiry = expiry;
-        this.capitalStrategy = capitalStrategy;
-
-        if (capitalStrategy == null) {
-            if (expiry == null)
-                this.capitalStrategy = new CapitalStrategyTermLoan();
-            else if (maturity == null)
-                this.capitalStrategy = new CapitalStrategyRevolver();
-            else
-                this.capitalStrategy = new CapitalStrategyRCTL();
-        }
-    }
+. Make it static and public
+.. Click on the method name
+.. Go to menu:Refactor[Make static...]
+.. Make it public
++
+.Creation Method createTermLoan()
+[source,java]
+----
+public static Loan createTermLoan(Date maturity, int riskRating, double commitment) {
+    return new Loan(commitment, riskRating, maturity);
 }
-....
+----
 
-To apply this refactoring, we need to find a code that calls one of
-these constructors. For instance, in a test case:
+. Move method to class `Loan`
+.. Click on the method name and go to menu:Refactor[Move Members...]
+.. Write down the destination (to) class: `fr.rtp.creation.creationmethods.Loan`.
 
-public class CapitalCalculationTests... public void
-testTermLoanNoPayments() //... Loan termLoan = new Loan(commitment,
-riskRating, maturity); //...
+. After doing that, we will need to find all callers of the constructor and update them to call `createTermLoan()`.
+.. Click on the first constructor and then go to menu:Navigate[Declaration or Usages].
+.. You you find any usage other than the creation method, make it call `createTermLoan()`.
 
-First, apply the ``Extract Method'' refactoring on that constructor call
-to produce a public, static method called .
 
-public class CapitalCalculationTests
-
-public void testTermLoanNoPayments() //... Loan termLoan =
-createTermLoan(commitment, riskRating, maturity); //...
-
-public static Loan createTermLoan(double commitment, int riskRating,
-Date maturity) return new Loan(commitment, riskRating, maturity);
-
-Next, apply the ``Move Method'' refactoring on the creation method, , to
-move it to .
-
-public class Loan // ... public static Loan createTermLoan(double
-commitment, int riskRating, Date maturity) return new Loan(commitment,
-riskRating, maturity);
-
-public class CapitalCalculationTest //... public void
-testTermLoanNoPayments() // ... Loan termLoan =
-Loan.createTermLoan(commitment, riskRating, maturity); //...
-
-After doing that, we will need to find all callers of the constructor
-and update them to call . Since now the method is now the only caller on
-the constructor, we can apply the ``Inline Method'' refactoring to this
+. Inline method
+.. Since now the method is now the only caller on the constructor, we can apply the _Inline Method_ refactoring to this
 constructor.
+.. Inside the creation method, click on the construction call and then go to menu:Refactor[Inline Method..] choose *Inline all and remove the method*.
 
-public static Loan createTermLoan(double commitment, int riskRating,
-Date maturity) return new Loan(commitment, 0.00, riskRating, maturity,
-null);
+. Repeat the same procedure to the other constructors, to create
+additional creation methods on class `Loan`.
++
+.New Creation Methods
+[source,java]
+----
+public static Loan newRevolver(double commitment, Date start, Date expiry, int riskRating) {
+    return new Loan(commitment, 0, start, expiry, null, riskRating, new CapitalStrategyRevolver());
+}
 
-Repeat the same procedure to the other constructors, to create
-additional creation methods on class .
+public static Loan newAdvisedLine(double commitment, Date start, Date expiry, int riskRating) {
+    if (riskRating > 3) return null;
+    Loan advisedLine = new Loan(commitment, 0, start, expiry, null, riskRating, new CapitalStrategyAdvisedLine()); advisedLine.setUnusedPercentage(0.1);
+    return advisedLine;
+}
+----
 
-public static Loan newRevolver(double commitment, Date start, Date
-expiry, int riskRating) return new Loan(commitment, 0, start, expiry,
-null, riskRating, new CapitalStrategyRevolver());
-
-public static Loan newAdvisedLine(double commitment, Date start, Date
-expiry, int riskRating) if (riskRating > 3) return null; Loan
-advisedLine = new Loan(commitment, 0, start, expiry, null, riskRating,
-new CapitalStrategyAdvisedLine()); advisedLine.setUnusedPercentage(0.1);
-return advisedLine;
-
-Last step, since the constructors are only used by creation methods,
-they can become private.
+. Last step, since the constructors are only used by creation methods, they can become private.
+****
 
 === Replace State-Altering Conditionals with State
 
