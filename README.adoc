@@ -164,25 +164,205 @@ In this exercise, we will use the Strategy Design Pattern to simplify the calcul
 ----
 public class CapitalStrategy {}
 public class Loan {
-    private CapitalStrategy strategy;
+    private CapitalStrategy strategy = new CapitalStrategy();
     // (...)
 }
 ----
 --
 
+==== Move Field `commitment` to `CapitalStrategy`
 
+.To-Do
+****
+[NOTE]
+--
+We need to move the methods `capital()` and `duration()` from class `Loan` to class `CapitalStrategy`.
 
-Now, apply the ``Move Method'' refactoring operation to move the method
-to class . This involves:
+To this end, we will need first to move first the fields and auxiliary methods used by these two methods.
+--
 
-. Changing the visibility of some private methods: , , , , and .
-. Encapsulating fields , , , , , , and .
-. Creating a simple version of method on class , which delegates to an
-instance of .
-. Moving the method and replacing all references to by .
+. Select the `commitment` field at its declaration and go to menu:Refactor[Encapsulate Fields...].
+.. *Do not* encapsulate the _Set access_  (the field is never modified)
+.. Set the _Accessor Visibility_ to `private`.
+. icon:hand[] Move the `commitment` field to class `CapitalStrategy`:
+.. Cut&Paste the field declaration to move it. Make it `final`.
+.. Create a new constructor in class `CapitalStrategy` that initializes field `commitment`. Use menu:Code[New... > Constructor].
+.. Move the initialization of field `strategy`, from its declaration to the two constructors. At the same time, remove the initializations of field `commitment`, which no longuer exists.
+.. Copy&Paste the accessor method (`getCommitment()`).
+.. Change the visibility of the pasted method to `protected`.
+.. Make the original method _delegate_ its behavior to the new one.
+.. Run all tests and check that the code works and before the changes.
 
-* Maybe we should remember that "protected" methods are accessible from
-classes belonging to the same package.
+.CapitalStrategy class, after changes
+[source,java]
+----
+public class CapitalStrategy {
+    private final double commitment;
+
+    public CapitalStrategy(double commitment) {
+        this.commitment = commitment;
+    }
+
+    protected double getCommitment() {
+        return commitment;
+    }
+}
+----
+
+.Snippet of class Loan, after changes
+[source,java]
+----
+public class Loan {
+    private CapitalStrategy strategy;
+    public Loan(double commitment, double outstanding, Date start, Date expiry, Date maturity, int riskRating) {
+        strategy = new CapitalStrategy(commitment);
+        // (...)
+    }
+    public Loan(double commitment, Date start, Date maturity, int riskRating) {
+        strategy = new CapitalStrategy(commitment);
+        // (...)
+    }
+    // (...)
+    private double getCommitment() {
+        return strategy.getCommitment();
+    }
+}
+----
+****
+
+==== Move fields  maturity, expirity, outstanding, riskRating and start to CapitalStrategy
+
+.To-Do
+****
+. Encapsulate fields `maturity`, `expirity`, `outstanding`, `riskRating` and `start` with a private *get* accessor.
+
+. Cut&Paste the field declarations to move them. Make them `final`.
+
+. Create a new constructor in class `CapitalStrategy` that initializes field `commitment`.
++
+[TIP]
+====
+Delete the old constructor and use menu:Code[New... > Constructor] to create a new one.
+====
++
+. Move the new  accessor methods to `CapitalStrategy`.
+
+. Change the visibility of the pasted method to `protected`.
+
+. Make the original methods _delegate_ their behavior to the new ones.
+
+. Run all tests and check that the code works and before the changes.
+
+.CapitalStrategy class after changes
+[source,java]
+----
+public class CapitalStrategy {
+    private final double commitment;
+    private final double outstanding;
+    private final Date maturity;
+    private final Date expiry;
+    private final Date start;
+    private final int riskRating;
+
+    public CapitalStrategy(double commitment, double outstanding, Date maturity, Date expiry,
+                           Date start, int riskRating) {
+        this.commitment = commitment;
+        this.outstanding = outstanding;
+        this.maturity = maturity;
+        this.expiry = expiry;
+        this.start = start;
+        this.riskRating = riskRating;
+    }
+
+    protected double getCommitment() {
+        return commitment;
+    }
+
+    protected double getOutstanding() {
+        return outstanding;
+    }
+
+    protected Date getMaturity() {
+        return maturity;
+    }
+
+    protected Date getExpiry() {
+        return expiry;
+    }
+
+    protected Date getStart() {
+        return start;
+    }
+
+    protected int getRiskRating() {
+        return riskRating;
+    }
+}
+----
+
+.Snippet of class Loan, after changes
+[source,java]
+----
+public class Loan {
+    public Loan(double commitment, double outstanding, Date start, Date expiry, Date maturity, int riskRating) {
+        strategy = new CapitalStrategy(commitment, outstanding, maturity, expiry, start, riskRating);
+        payments = new HashSet<Payment>();
+    }
+
+    public Loan(double commitment, Date start, Date maturity, int riskRating) {
+        strategy = new CapitalStrategy(commitment, commitment, maturity, null, start, riskRating);
+        payments = new HashSet<Payment>();
+    }
+// (...)
+    private double getOutstanding() {
+        return strategy.getOutstanding();
+    }
+
+    private Date getMaturity() {
+        return strategy.getMaturity();
+    }
+
+    private Date getExpiry() {
+        return strategy.getExpiry();
+    }
+
+    private Date getStart() {
+        return strategy.getStart();
+    }
+
+    public int getRiskRating() {
+        return strategy.getRiskRating();
+    }
+}
+----
+****
+
+==== Move method yearsTo() to CapitalStrategy
+
+.To-Do
+****
+. icon:hand[] Move, using Cut&Paste, fields `today`, `MILLIS_PER_DAY` and `DAYS_PER_YEAR` to class CapitalStrategy
+. icon:hand[]  Copy, using Copy&Paste, method `yearsTo()` to class `CapitalStrategy`.
+.. Change the visibility of the new method to `protected`.
+. Replace the body of the original method with a delegation to the new method
+
+.Method Loan::yearsTo() after changes
+[source,java]
+----
+private double yearsTo(Date endDate) {
+    return strategy.yearsTo(endDate);
+}
+----
+
+.Method CapitalStrategy::yearsTo() after changes
+[source, java]
+----
+protected double yearsTo(Date endDate) {
+    Date beginDate = (today == null ? getStart() : today);
+    return ((endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
+}
+----
+****
 
 ....
 public class LoanRefactored {

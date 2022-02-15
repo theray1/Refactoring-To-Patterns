@@ -20,7 +20,7 @@ public class Loan {
     private Set<Payment> payments;
     private double unusedPercentage;
 
-    private Loan(double commitment, double outstanding, Date start, Date expiry, Date maturity, int riskRating) {
+    public Loan(double commitment, double outstanding, Date start, Date expiry, Date maturity, int riskRating) {
         this.commitment = commitment;
         this.outstanding = outstanding;
         this.start = start;
