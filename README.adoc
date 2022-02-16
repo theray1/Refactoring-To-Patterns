@@ -21,7 +21,7 @@ During this tutorial--as well as when refactoring source code--you must follow t
 . All Unit Tests must always pass, before and after code changes
 . The build must always pass and never crash
 
-If one of these rules are broken, you should *stop* refactoring and *revert* your changes.
+If you break one of these rules, you should *stop* refactoring and *revert* your changes.
 ====
 
 == Getting Ready
