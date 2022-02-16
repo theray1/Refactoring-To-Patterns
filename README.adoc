@@ -1,13 +1,44 @@
 :icons: font
 :experimental:
+:source-highlighter: rouge
+:rouge-css: style
+
 = Refactoring to Patterns
 
-- IntelliJ
-- Never break the build
+In this tutorial, we will use https://naomod.univ-nantes.io/sce/slides/refactorings.html[refactoring] operations to apply design patterns to improve code maintainability.
 
-== Code Simplification
+To build the project, you need Apache Maven, JDK 11 (or greater) and IntelliJ.
+IntelliJ IDEA is *mandatory* to follow the tutorial.
 
-=== Introduce Compose Method
+Refactoring is an activity that improves the design of a software source code.
+During this activity, developers use specific set of source code transformations, named *refactoring operations*.
+Refactoring operations are simple code changes that preserve the visible behavior of a program.
+
+[WARNING]
+====
+During this tutorial--as well as when refactoring source code--you must follow two rules:
+
+. All Unit Tests must always pass, before and after code changes
+. The build must always pass and never crash
+
+If one of these rules are broken, you should *stop* refactoring and *revert* your changes.
+====
+
+== Getting Ready
+
+IMPORTANT: Before starting this tutorial, you *must* fork and clone this repository.
+
+. On this https://gitlab.univ-nantes.fr/naomod/sce/refactoring-to-patterns[project] click on https://gitlab.univ-nantes.fr/naomod/sce/refactoring-to-patterns/-/forks/new[Fork] to create a fork of the project in your account.
+
+. Clone your project and open it with IntelliJ.
+
+. In the project root, add a document named `CONTRIBUTORS.md`, add your name to it, commit and push your changes.
+
+. *Do not* make your project private, otherwise it will become invisible for the instructors.
+
+== Introduce Compose Method
+
+In this first exercise, we will simplify a simple method that adds elements to an array of objects.
 
 The "Compose
 Method"footnote:[http://c2.com/ppr/wiki/WikiPagesAboutRefactoring/ComposedMethod.html]
@@ -24,9 +55,9 @@ ____
 
 A Composed Method consists of calls to well-named methods that are all
 at the same level of detail. 
-Follow the instructions below to simplify
-the method `add()` from class `ArrayList`:
+Follow the instructions below to simplify the method `add()` from class `ArrayList`:
 
+This class is available link:./src/main/java/fr/rtp/util/ArrayList.java[here].
 
 .The ArrayList Class
 [source,java]
@@ -40,12 +71,7 @@ The `ArrayList` class is composed of three parts:
 <2> The grow part
 <3> The actual add behavior part
 
-==== Guard Clauses
-
-[sidebar]
-.To-Do
---
-Invert the "readonly"  check to introduce a "Guard Clause".
+=== Guard Clauses
 
 [quote]
 ____
@@ -53,22 +79,43 @@ A guard clause is simply a check (the inverted `if`) that immediately exits the 
 ____
 
 TIP: For more information about Guard Clauses, read the refactoring https://refactoring.guru/fr/replace-nested-conditional-with-guard-clauses[Replace Nested Conditinal with Guard Clauses].
---
 
-==== Extract Private Method
-
-[sidebar]
 .To-Do
---
-Apply the _Extract Method_ refactoring operation to replace the two lines (18-19) that actually adds an element and create the private method `void addElement(Object obj)`.
+****
+. Invert the "readonly"  check to introduce a "Guard Clause".
+. Run all tests and check that they still pass after the changes.
++
+[source,sh]
+----
+mvn clean test
+----
 
-TIP: To use the _Extract Method_ refactoring, first select le lines you want to place in a different method, then go to menu:Refactor[Extract/Introduce > Method...] and name the new method.
---
+. Commit and push your changes
++
+[source,shell]
+----
+git stage ./src/main/java/fr/rtp/util/ArrayList.java
+git commit -m "Replace Nested Conditinal with Guard Clause"
+git push
+----
+****
 
-==== Replace Magic Numbers
+
+=== Extract Private Method
+
+Apply the _Extract Method_ refactoring operation to replace the two lines that actually adds an element and create the private method `void addElement(Object obj)`.
+
 .To-Do
-[sidebar]
---
+****
+. Use the _Extract Method_ refactoring from IntelliJ
+.. Select the lines you want to place in a different method.
+.. Go to menu:Refactor[Extract/Introduce > Method...] and name the new method `addElement()`.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
+****
+
+=== Replace Magic Numbers
+
 Apply the _Extract Constant_ refactoring operation to replace the magic number `10` and introduce an "Explanatory Variable" named `GROWTH_INCREMENT`.
 
 [quote, Kent Beck]
@@ -78,32 +125,49 @@ Explanatory variables are variables with meaningful names, which held intermedia
 The simple use of explanatory variables makes it clear that the first matched group is the key, and the second matched group is the value.
 ____
 
-TIP: To use the _Extract Constant_ refactoring operation, first select the value (10), then go to menu:Refactor[Extract/Introduce > Constant...] and name the new constant.
---
-
-==== Extract Private Method Again
-
-[sidebar]
 .To-Do
---
-Apply the _Inline variable_ refactoring operation to `newSize` and then apply the _Extract
-Method_ refactoring operation  to the code that checks whether the `element`  array is at its capacity and needs to grow, and create the method `atCapacity()`.
+****
+. Use the _Extract Constant_ refactoring operation from IntelliJ
+.. Select the value (`10`)
+.. Go to menu:Refactor[Extract/Introduce > Constant...] and name the new constant `GROWTH_INCREMENT`.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
+****
 
-In other words, replace the boolean expression of the `if` statement by the call of `atCapacity()`.
+=== Extract Private Method Again
 
-TIP: To inline a variable, select its usage (not its definition) and go to menu:Refactor[Inline Variable]
+Replace the boolean expression of the `if` statement by a method call that explains the expression:
+it checks whether the `element`  array is at its capacity and needs to grow.
 
---
-
-==== Extract the `grow()` Method
-
-[sidebar]
 .To-Do
---
-Finally, apply the __Extract Method__ operation to the part of the code that grows the size of the array, creating the `grow()` private method.
---
+****
+. Inline variable `newSize`.
+.. Inside the if condition, click on variable `newSize`.
+.. Go to menu:Refactor[Inline Variable].
 
-==== Final code
+. Extract Method
+.. Select the boolean expression inside the if condition
+.. Go to menu:Refactor[Extract/Introduce > Method...] and name the new method `atCapacity()`.
+
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
+****
+
+=== Extract the `grow()` Method
+
+Finally, apply the __Extract Method__ refactoring operation to the part of the code that grows the size of the array, creating the `grow()` private method.
+
+.To-Do
+****
+. Extract method
+.. Select the statements inside the *if true* bloc.
+.. Go to menu:Refactor[Extract/Introduce > Method...] and name the new method `grow()`.
+
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
+****
+
+=== Final code
 
 After applying all the previous refactoring operations, your code should look like:
 
@@ -120,7 +184,7 @@ public void add(Object child) {
 }
 ----
 
-=== Replace Conditional Logic with Strategy
+== Replace Conditional Logic with Strategy
 
 The https://naomod.univ-nantes.io/patterns/strategy.html[Strategy Design Pattern] defines a family of algorithms, encapsulates each algorithm, and make them interchangeable, letting the algorithm vary independently of the clients that use it.
 
@@ -129,6 +193,8 @@ We can apply this pattern to classes where several methods have similar structur
 For instance, let us consider the `Loan`
 classfootnote:[http://www.informit.com/articles/article.aspx?p=1398607&seqNum=2],
 from Joshua Kerievsky’s book <<rtp>>:
+
+The `Loan` class is available link:./src/main/java/fr/rtp/loan/Loan.java[here].
 
 [source,java]
 ----
@@ -151,14 +217,13 @@ A `null` maturity and a non-`null` expiry date indicate a revolver loan.
 
 In this exercise, we will use the Strategy Design Pattern to simplify the calculation of the loan’s capital.
 
-==== Create the `CapitalStrategy` class
+=== Create the `CapitalStrategy` class
 
-[sidebar]
 .To-Do
---
+****
 . Create an empty class named `CapitalStrategy`.
 . Add a field named `strategy` to class `Loan`.
-
++
 [source, java]
 .The empty `CapitalStrategy`class and its usage
 ----
@@ -168,19 +233,31 @@ public class Loan {
     // (...)
 }
 ----
---
-
-==== Move Field `commitment` to `CapitalStrategy`
-
-.To-Do
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 ****
-[NOTE]
---
+
+=== Move Field `commitment` to `CapitalStrategy`
+
 We need to move the methods `capital()` and `duration()` from class `Loan` to class `CapitalStrategy`.
 
 To this end, we will need first to move first the fields and auxiliary methods used by these two methods.
---
 
+[CAUTION]
+====
+IntelliJ does not implement all known refactoring operations.
+In some cases, you need to apply refactoring manually.
+
+*Be careful:* Before changing the source code, think twice!
+
+Ask yourself:
+____
+Will this change affect the behavior of the source code?
+____
+====
+
+.To-Do
+****
 . Select the `commitment` field at its declaration and go to menu:Refactor[Encapsulate Fields...].
 .. *Do not* encapsulate the _Set access_  (the field is never modified)
 .. Set the _Accessor Visibility_ to `private`.
@@ -191,7 +268,9 @@ To this end, we will need first to move first the fields and auxiliary methods u
 .. Copy&Paste the accessor method (`getCommitment()`).
 .. Change the visibility of the pasted method to `protected`.
 .. Make the original method _delegate_ its behavior to the new one.
-.. Run all tests and check that the code works and before the changes.
+
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 
 .CapitalStrategy class, after changes
 [source,java]
@@ -230,7 +309,7 @@ public class Loan {
 ----
 ****
 
-==== Move fields  maturity, expirity, outstanding, riskRating and start to CapitalStrategy
+=== Move fields  maturity, expirity, outstanding, riskRating and start to CapitalStrategy
 
 .To-Do
 ****
@@ -251,7 +330,8 @@ Delete the old constructor and use menu:Code[New... > Constructor] to create a n
 
 . Make the original methods _delegate_ their behavior to the new ones.
 
-. Run all tests and check that the code works and before the changes.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 
 .CapitalStrategy class after changes
 [source,java]
@@ -337,7 +417,7 @@ public class Loan {
 ----
 ****
 
-==== Move method yearsTo() to CapitalStrategy
+=== Move method yearsTo() to CapitalStrategy
 
 .To-Do
 ****
@@ -345,7 +425,8 @@ public class Loan {
 . icon:hand[]  Copy, using Copy&Paste, method `yearsTo()` to class `CapitalStrategy`.
 .. Change the visibility of the new method to `protected`.
 . Replace the body of the original method with a delegation to the new method.
-. Run all tests and check that the code works and before the changes.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 
 .Method Loan::yearsTo() after changes
 [source,java]
@@ -365,12 +446,12 @@ protected double yearsTo(Date endDate) {
 ----
 ****
 
-==== Move method duration() to CapitalStrategy
+=== Move method duration() to CapitalStrategy
+
+NOTE: Here we will use a different approach to move a method from one class to another, without using Copy&Paste
 
 .To-Do
 ****
-NOTE: Here we will use a different approach to move a method from one class to another, without using Copy&Paste
-
 . Change the visibility of method `weightedAverageDuration()` to `protected`.
 
 . Select all the lines of the body of method `duration()`.
@@ -398,7 +479,8 @@ NOTE: Here we will use a different approach to move a method from one class to a
 
 . Select the new method name, go to menu:Refactor[Rename...] and rename it to `duration()`.
 
-. Run all tests and check that the code works and before the changes.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 
 .Method `Loan::duration()` after changes
 [source,java]
@@ -406,7 +488,7 @@ NOTE: Here we will use a different approach to move a method from one class to a
 ----
 ****
 
-==== Move method capital() to CapitalStrategy
+=== Move method capital() to CapitalStrategy
 
 .To-Do
 ****
@@ -494,10 +576,12 @@ double capital(Loan loan) {
     return 0.0;
 }
 ----
-. Run all tests and check that the code works and before the changes.
+
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 ****
 
-==== Replace Conditional with Polymorphism
+=== Replace Conditional with Polymorphism
 
 Now that we migrated methods `capital()` and `duration()` to `CapitalStrategy`, we will create the classes that play the _Concrete Strategy_ roles and move that methods to these classes.
 
@@ -558,10 +642,12 @@ double capital(Loan loan) {
 
 . Repeat the same operations for method `CapitalStrategy::duration()`
 
-. Run all tests and check that the code works and before the changes.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
+
 ****
 
-=== Chain Constructors
+== Chain Constructors
 
 Classes may have several constructors: this is normal, as there may be
 different ways to instantiate objects of a same class.
@@ -586,6 +672,9 @@ include::src/main/java/fr/rtp/utilities/chainconstructors/BankLoan.java[]
 ****
 . Change constructor 1 to make it call constructor 3.
 . Change constructor 2 to make it also call constructor 3.
+
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 
 .BankLoan class after changes
 [source,java]
@@ -612,7 +701,7 @@ public class BankLoan {
 ----
 ****
 
-=== Replace Constructors with Creation Methods
+== Replace Constructors with Creation Methods
 
 The goal of the _Replace Constructors with Creation Methods_ refactoring operation is to replace constructors with intention-revealing creation methods that return object instances.
 
@@ -689,108 +778,169 @@ public static Loan newAdvisedLine(double commitment, Date start, Date expiry, in
 ----
 
 . Last step, since the constructors are only used by creation methods, they can become private.
+
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes
 ****
 
-=== Replace State-Altering Conditionals with State
+== Replace State-Altering Conditionals with State
+
+link:https://www.informit.com/articles/article.aspx?p=1398607&seqNum=4[]
+
+The https://refactoring.guru/design-patterns/state[State] Design Pattern applies to classes whose objet behaviors are strongly dependent on their internal state.
+
+The State Design Pattern encapsulates the behavior specific to each state and replaces conditional checks by delegations.
+
+For instance, let us consider the link:./src/main/java/fr/rtp/simplification/condwithstate/SystemPermission.java[`SystemPermission`] class, from Joshua Kerievsky’s book <<rtp>>:
 
 [source,java]
 ----
+include::src/main/java/fr/rtp/simplification/condwithstate/SystemPermission.java[]
 ----
 
-The context class is a class that contains the original state field, a
-field that gets assigned to or compared against a family of constants
-during state transitions. Apply _Replace Type Code with Class_ on the
-original state field such that its type becomes a class. We’ll call that
-new class the state superclass.
+The `SystemPermission` plays the role of _Context_ in the State Design Pattern.
+It has a state field, i.e. a field that gets assigned to or compared against a family of constants during state transitions.
+In this class, the state field is also named `state`.
 
-The context class is known as State: Context and the state superclass as
-State: State in Design Patterns.
 
-Class has a field called , which is of type String. The first step is to
-change state’s type to be a class by applying the refactoring Replace
-Type Code with Class. This yields the following new class:”
+=== Replace Type Code with Class
 
-....
+At first, we will apply the refactoring operation named https://refactoring.guru/fr/replace-type-code-with-class[Replace Type Code with Class].
+
+We will change the type of the original state field, from `String` to a new class named `PermissionState`.
+
+.To-Do
+****
+. Create a new class named `PermissionState`.
+
+. Copy the `state` field to `PermissionState` and make it private and final. A value will be set for this field only from the constructor.
+
+. Create a getter for the field.
++
+.Class PermissionState, initial version
+[source,java]
+----
 public class PermissionState {
-    private String name;
-    private PermissionState(String name) {
-        this.name = name;
+    private final String state;
+
+    public PermissionState(String state) {
+        this.state = state;
     }
 
-    public final static PermissionState REQUESTED = new PermissionState("REQUESTED");
-    public final static PermissionState CLAIMED = new PermissionState("CLAIMED");
-    public final static PermissionState GRANTED = new PermissionState("GRANTED");
-    public final static PermissionState DENIED = new PermissionState("DENIED");
-    public final static PermissionState UNIX_REQUESTED = new PermissionState("UNIX_REQUESTED");
-    public final static PermissionState UNIX_CLAIMED = new PermissionState("UNIX_CLAIMED");
-
-    public String toString() {
-        return name;
+    public String getState() {
+        return state;
     }
 }
-....
+----
 
-image:TypeCodeWithClass.jpg[image]
+. Move state constants to class `PermissionState`.
+.. Click on constant `REQUESTED`, then go to menu:Refactor[Move Members...], and move the constant to class `fr.unantes.sce.temp.PermissionState`.
+.. Change the types and the initialization values of the constants `REQUESTED`, `CLAIMED`, `GRANTED`, and `DENIED`.
+Each field initialization creates an instance of `PermissionState` corresponding to this value of `state`.
++
+[source,java]
+.Constant initialization
+----
+public final static PermissionState REQUESTED = new PermissionState("REQUESTED");
+----
+. Add methods `equals()` and `hashCode()` to class `PermissionState`.
+.. Go to menu:Code[Generate...] and choose "equals() and hashCode()".
 
-Each constant in the state superclass now refers to an instance of the
-state superclass. Apply Extract Subclass to produce one subclass (known
-as State: ConcreteState) per constant, then update the constants in the
-state superclass so that each refers to the correct subclass instance of
-the state superclass. Finally, declare the state superclass to be
-abstract.
+. In class `SystemPermission`:
+.. Replace the type of field `state` with `PermissionState`.
 
-PermissionState now contains six constants, all of which are instances
-of PermissionState. To make each of these constants an instance of a
-subclass of PermissionState, I apply Extract Subclass [F] six times to
-produce the result shown in the following diagram. ``Because no client
-will ever need to instantiate PermissionState, I declare it to be
-abstract:''
+.. Change the getter of the `state` field, so that it calls the `PermissionState` class getter.
 
-....
-public abstract class PermissionState...
-....
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes.
+****
 
-image:extract-subclass.pdf[image]
+=== Extract subclasses
 
-Find a context class method that changes the value of the original state
-field based on state transition logic. Copy this method to the state
-superclass, making the simplest changes possible to make the new method
-work. (A common, simple change is to pass the context class to the
-method in order to have code call methods on the context class.).
-Finally, replace the body of the context class method with a delegation
-call to the new method.
+Now, we will apply the refactoring operation named
+https://refactoring.guru/fr/extract-subclass[Extract Subclass] to class `PermissionState`.
 
-Repeat this step for every context class method that changes the value
-of the original state field based on state transition logic.
+.To-Do
+****
+. Create a class, subclass of `PermissionState` for each constant: `Requested`, `Claimed`, etc.
+.. After creating each subclass, go to menu:Code[Generate...] and choose "Constructor" to create a constructor.
 
-Next, I find a method on SystemPermission that changes the value of
-permission based on state transition logic. There are three such methods
-in SystemPermission: claimedBy(), deniedBy(), and grantedBy(). I start
-by working with claimedBy(). I must copy this method to PermissionState,
-making enough changes to get it to compile and then replacing the body
-of the original claimedBy() method with a call to the new
-PermissionState version:
+. Update the constant initialization in class `PermissionState`, so that each refers to the correct subclass instance of
+the state superclass.
++
+[source,java]
+.Constant initialization, updated
+----
+public final static PermissionState REQUESTED = new Requested("REQUESTED");
+----
 
-Choose a state that the context class can enter, and identify which
-state superclass methods make this state transition to other states.
-Copy the identified method(s), if any, to the subclass associated with
-the chosen state and remove all unrelated logic.
+. Now, declare the state superclass to be abstract.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes.
+****
 
-Unrelated logic usually includes verifications of a current state or
-logic that transitions to unrelated states.
+=== Move state-dependent methods
 
-Repeat for all states the context class can enter.
+Several methods from class `SystemPermission` implement a behavior that highly depends on the current state: `grantedBy()`, `claimedBy()`, and `deniedBy()`.
 
-“In PermissionState, I can now delete the bodies of claimedBy(),
-deniedBy(), and grantedBy(), leaving the following:
+We will move these methods to the state classes and replace the original methods by a delegation.
 
-abstract class PermissionState public String toString(); public void
-claimedBy(SystemAdmin admin, SystemPermission permission) public void
-deniedBy(SystemAdmin admin, SystemPermission permission) public void
-grantedBy(SystemAdmin admin, SystemPermission permission)
+.To-Do
+****
+. Before moving the methods, we need to prepare the body of these methods, making the used fields and called methods accessible from the state classes.
 
-Delete the bodies of each of the methods copied to the state superclass
-during step 3 to produce an empty implementation for each method.
+.. Change the visibility of methods `willBeHandledBy()`, `notifyUserOfPermissionRequestResult()`, and `notifyAdminOfPermissionRequest()` to `package-local` or `protected`.
+
+.. Encapsulate field `state`. Click on the field declaration, then go to menu:Refactor[Encapsulate fields...]. Set the visibility of accessors to `package-local`.
+
+.. Do the same with field `isGranted` and `admin`.
+
+. Move method `claimedBy()` to class `PermissionState`.
+.. Select the body of the method, then go to menu:Refactor[Extract/Introduce > Method...].
+.. Use a temporary name for the new method, for instance, `extracted()` or `extractedClaimedBy()`.
+.. Click on the name of the extracted method and go to menu:Refactor[Move Instance Method...] and choose `PermissionState`.
+.. After moving the method rename the method to `claimedBy()`.
+
+. Now, repeat the previsous steps for methods `deniedBy()` and `grantedBy()`.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes.
+****
+
+=== Replace Conditional with Polymorphism
+
+Now, we will remove the state-related conditionals from the moved methods and place in each state subclass the part of method body related to it.
+
+.To-Do
+****
+. In class `PermissionState`:
+.. Push-down method `claimedBy()`
+.. Create an abstract method with the same signature in class `PermissionState` to avoid accessibility errors.
+.. Now, analyze all the pushed methods and remove the code that will never be executed.
+.. For instance, the behavior of method `claimedBy()` is only executed when the state is _Requested_. Nothing is executed in other states.
++
+[source,java]
+.Method Requested::claimedBy(), after changes
+----
+void claimedBy(SystemAdmin admin, SystemPermission systemPermission) {
+  systemPermission.willBeHandledBy(admin);
+  systemPermission.setState(CLAIMED);
+}
+----
++
+[source,java]
+.Method Claimed::claimedBy(), after changes
+----
+void claimedBy(SystemAdmin admin, SystemPermission systemPermission) {
+}
+----
+
+. Repeat the previous steps for methods `deniedBy()` and `grantedBy()`.
+. Run all tests and check that they still pass after the changes.
+. Commit and push your changes.
+****
+
+//== Questions
+
 
 [bibliography]
 == References
