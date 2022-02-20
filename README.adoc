@@ -95,7 +95,7 @@ mvn clean test
 [source,shell]
 ----
 git stage ./src/main/java/fr/rtp/util/ArrayList.java
-git commit -m "Replace Nested Conditinal with Guard Clause"
+git commit -m "Replace Nested Conditional with Guard Clause"
 git push
 ----
 ****
@@ -103,7 +103,7 @@ git push
 
 === Extract Private Method
 
-Apply the _Extract Method_ refactoring operation to replace the two lines that actually adds an element and create the private method `void addElement(Object obj)`.
+Apply the _Extract Method_ refactoring operation to replace the two lines that actually add an element and create the private method `void addElement(Object obj)`.
 
 .To-Do
 ****
