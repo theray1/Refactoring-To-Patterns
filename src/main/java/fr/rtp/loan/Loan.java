@@ -88,7 +88,7 @@ public class Loan {
 
     private double yearsTo(Date endDate) {
         Date beginDate = (today == null ? start : today);
-        return ((endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
+        return ((double) (endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
     }
 
     private double riskFactor() {
@@ -100,7 +100,7 @@ public class Loan {
     }
 
     private double getUnusedPercentage() {
-        return 0.0;
+        return 0.05;
     }
 
     public void payment(double amount, Date date) {
