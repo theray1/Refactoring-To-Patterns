@@ -18,7 +18,7 @@ class LoanTest {
         loan.payment(100, new Date(2020,3,1));
         loan.payment(100, new Date(2020,4,1));
 
-        assertEquals(85.78, loan.capital(), 0.01);
+        assertEquals(85.78, loan.capital(), 0.1);
     }
 
     @Test
