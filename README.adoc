@@ -30,6 +30,9 @@ IMPORTANT: Before starting this tutorial, you *must* fork and clone this reposit
 
 . On this https://gitlab.univ-nantes.fr/naomod/sce/refactoring-to-patterns[project] click on https://gitlab.univ-nantes.fr/naomod/sce/refactoring-to-patterns/-/forks/new[Fork] to create a fork of the project in your account.
 
+. In *your* fork, go to menu:Project Information[Members], and add as a new member the virtual user called *Naobot*, with the status "Reporter".
+This virtual user gives the instructors the right to access your work and will allow us to retrieve your projects.
+
 . Clone your project and open it with IntelliJ.
 
 . In the project root, add a document named `CONTRIBUTORS.md`, add your name to it, commit and push your changes.
