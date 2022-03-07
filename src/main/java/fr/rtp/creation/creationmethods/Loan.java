@@ -41,8 +41,4 @@ public class Loan {
                 this.capitalStrategy = new CapitalStrategyRCTL();
         }
     }
-
-    public static Loan createTermLoan(Date maturity, int riskRating, double commitment) {
-        return new Loan(commitment, 0.00, riskRating, maturity, null);
-    }
 }
