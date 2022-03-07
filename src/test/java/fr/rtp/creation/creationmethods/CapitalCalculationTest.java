@@ -11,7 +11,7 @@ public class CapitalCalculationTest {
         Date maturity = new Date(2024, 11, 31);
         int riskRating = 1;
         double commitment = 0.0;
-        Loan termLoan = Loan.createTermLoan(maturity, riskRating, commitment);
+        Loan termLoan = new Loan(commitment, 0.00, riskRating, maturity, null);
 
         assert termLoan.capitalStrategy.getClass() == CapitalStrategyTermLoan.class;
     }
