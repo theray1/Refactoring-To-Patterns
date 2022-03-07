@@ -495,14 +495,14 @@ NOTE: Here we will use a different approach to move a method from one class to a
 
 .To-Do
 ****
-. Move method `outstandingRiskAmount()`
+. Move method `unusedRiskAmount()`
 .. This method has two method calls: `getCommitment()` and `getOutstanding()`.
 .. Inline these calls:
 ... Click on the first method call then go to menu:Refactor[Inline Method...]
 ... Choose "Inline this only and keep the method"
 ... Do the same with the second method call.
 +
-.Method `outstandingRiskAmount()` after inlines
+.Method `unusedRiskAmount()` after inlines
 [source,java]
 ----
 private double unusedRiskAmount() {
