@@ -755,7 +755,7 @@ public static Loan createTermLoan(Date maturity, int riskRating, double commitme
 
 . After doing that, we will need to find all callers of the constructor and update them to call `createTermLoan()`.
 .. Click on the first constructor and then go to menu:Navigate[Declaration or Usages].
-.. You you find any usage other than the creation method, make it call `createTermLoan()`.
+.. If you find any usage other than the creation method, make it call `createTermLoan()`.
 
 
 . Inline method
