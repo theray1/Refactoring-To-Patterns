@@ -2,6 +2,8 @@
 :experimental:
 :source-highlighter: rouge
 :rouge-css: style
+:sectnums:
+:toc:
 
 = Refactoring to Patterns
 
