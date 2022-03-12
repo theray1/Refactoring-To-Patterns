@@ -53,4 +53,12 @@ public class CapitalStrategy {
     protected Date getStart() {
         return start;
     }
+
+    double duration(Loan loan) {
+        if (this.getExpiry() == null && this.getMaturity() != null) // Term Loan
+            return loan.weightedAverageDuration();
+        else if (this.getExpiry() != null && this.getMaturity() == null) // Revolver or Advised Line
+            return this.yearsTo(this.getExpiry());
+        return 0.0;
+    }
 }
