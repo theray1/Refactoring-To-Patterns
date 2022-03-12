@@ -7,6 +7,8 @@ import java.util.Set;
 
 public class Loan {
 
+    private CapitalStrategy strategy = new CapitalStrategy();
+
     private static final int MILLIS_PER_DAY = 86400000;
     private static final int DAYS_PER_YEAR = 365;
 
