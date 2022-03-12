@@ -21,6 +21,10 @@ public class ArrayList {
             elements = newElements;
         }
 
+        addElement(child);
+    }
+
+    private void addElement(Object child) {
         elements[size] = child;
         size++;
     }
