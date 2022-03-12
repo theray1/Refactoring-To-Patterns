@@ -9,12 +9,6 @@ public class Loan {
 
     private CapitalStrategy strategy;
 
-    private static final int MILLIS_PER_DAY = 86400000;
-    private static final int DAYS_PER_YEAR = 365;
-
-
-    private Date today;
-
     private Set<Payment> payments;
     private double unusedPercentage;
 
@@ -80,8 +74,7 @@ public class Loan {
     }
 
     private double yearsTo(Date endDate) {
-        Date beginDate = (today == null ? getStart() : today);
-        return ((double) (endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
+        return strategy.yearsTo(endDate);
     }
 
     private double riskFactor() {
