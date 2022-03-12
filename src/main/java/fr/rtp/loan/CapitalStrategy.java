@@ -61,4 +61,37 @@ public class CapitalStrategy {
             return this.yearsTo(this.getExpiry());
         return 0.0;
     }
+
+    double outstandingRiskAmount() {
+        return getOutstanding();
+    }
+
+    double riskFactor() {
+        return RiskFactor.getFactors().forRating(getRiskRating());
+    }
+
+    double unusedRiskFactor() {
+        return UnusedRiskFactors.getFactors().forRating(getRiskRating());
+    }
+
+    double getUnusedPercentage() {
+        return 0.05;
+    }
+
+    private double unusedRiskAmount() {
+        return (getCommitment() - getOutstanding());
+    }
+
+    double capital(Loan loan) {
+        if (getExpiry() == null && getMaturity() != null) // Term Loan
+            return getCommitment() * duration(loan) * riskFactor();
+        if (getExpiry() != null && getMaturity() == null) {
+            if (getUnusedPercentage() != 1.0) // Revolver
+                return getCommitment() * getUnusedPercentage() * duration(loan) * riskFactor();
+            else // Advised Line
+                return (outstandingRiskAmount() * duration(loan) * riskFactor())
+                        + (unusedRiskAmount() * duration(loan) * unusedRiskFactor());
+        }
+        return 0.0;
+    }
 }

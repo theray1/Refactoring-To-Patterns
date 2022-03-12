@@ -28,28 +28,11 @@ public class Loan {
     }
 
     public double capital() {
-        if (getExpiry() == null && getMaturity() != null) // Term Loan
-            return getCommitment() * duration() * riskFactor();
-        if (getExpiry() != null && getMaturity() == null) {
-            if (getUnusedPercentage() != 1.0) // Revolver
-                return getCommitment() * getUnusedPercentage() * duration() * riskFactor();
-            else // Advised Line
-                return (outstandingRiskAmount() * duration() * riskFactor())
-                        + (unusedRiskAmount() * duration() * unusedRiskFactor());
-        }
-        return 0.0;
+        return strategy.capital(this);
     }
 
     public double duration() {
         return strategy.duration(this);
-    }
-
-    private double outstandingRiskAmount() {
-        return getOutstanding();
-    }
-
-    private double unusedRiskAmount() {
-        return (getCommitment() - getOutstanding());
     }
 
     protected double weightedAverageDuration() {
@@ -69,18 +52,6 @@ public class Loan {
 
     private double yearsTo(Date endDate) {
         return strategy.yearsTo(endDate);
-    }
-
-    private double riskFactor() {
-        return RiskFactor.getFactors().forRating(getRiskRating());
-    }
-
-    private double unusedRiskFactor() {
-        return UnusedRiskFactors.getFactors().forRating(getRiskRating());
-    }
-
-    private double getUnusedPercentage() {
-        return 0.05;
     }
 
     public void payment(double amount, Date date) {
