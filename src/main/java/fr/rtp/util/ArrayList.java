@@ -1,6 +1,7 @@
 package fr.rtp.util;
 
 public class ArrayList {
+    public static final int GROWTH_INCREMENT = 10;
     private Object[] elements = new Object[10];
     private boolean readOnly;
     private int size = 0;
@@ -14,7 +15,7 @@ public class ArrayList {
         int newSize = size + 1;
 
         if (newSize > elements.length) {
-            Object[] newElements = new Object[elements.length + 10];
+            Object[] newElements = new Object[elements.length + GROWTH_INCREMENT];
             for (int i = 0; i < size; i++) {
                 newElements[i] = elements[i];
             }
