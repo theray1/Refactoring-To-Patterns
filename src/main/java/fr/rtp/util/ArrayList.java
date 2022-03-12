@@ -13,14 +13,18 @@ public class ArrayList {
         }
 
         if (atCapacity()) {
-            Object[] newElements = new Object[elements.length + GROWTH_INCREMENT];
-            for (int i = 0; i < size; i++) {
-                newElements[i] = elements[i];
-            }
-            elements = newElements;
+            grow();
         }
 
         addElement(child);
+    }
+
+    private void grow() {
+        Object[] newElements = new Object[elements.length + GROWTH_INCREMENT];
+        for (int i = 0; i < size; i++) {
+            newElements[i] = elements[i];
+        }
+        elements = newElements;
     }
 
     private boolean atCapacity() {
