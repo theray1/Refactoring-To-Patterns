@@ -12,20 +12,11 @@ public class BankLoan {
     Date maturity;
 
     public BankLoan(float national, float outstanding, int rating, Date expiry) {
-        this.strategy = new TermROC();
-        this.national = national;
-        this.outstanding = outstanding;
-        this.rating = rating;
-        this.expiry = expiry;
+        this(new TermROC(), national, outstanding, rating, expiry, null);
     }
 
     public BankLoan(float national, float outstanding, int rating, Date expiry, Date maturity) {
-        this.strategy = new RevolvingTermROC();
-        this.national = national;
-        this.outstanding = outstanding;
-        this.rating = rating;
-        this.expiry = expiry;
-        this.maturity = maturity;
+        this(new RevolvingTermROC(), national, outstanding, rating, expiry, maturity);
     }
 
     public BankLoan(BankCapitalStrategy strategy, float national, float outstanding, int rating, Date expiry, Date maturity) {
