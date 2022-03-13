@@ -12,18 +12,29 @@ public class Loan {
     private Set<Payment> payments;
     private double unusedPercentage;
 
+    public CapitalStrategy chooseStrategy(double commitment, double outstanding, Date start, Date expiry, Date maturity, int riskRating){
+        if(expiry == null){
+            return new TermLoanStrategy(commitment, outstanding, start, expiry, maturity, riskRating);
+        }
+
+        if(maturity == null){
+            return new RevolverStrategy(commitment, outstanding, start, expiry, maturity, riskRating);
+        }
+
+        return new AdvisedLineStrategy(commitment, outstanding, start, expiry, maturity, riskRating);
+    }
+
     public Loan(double commitment, int riskRating, Date maturity) {
-        strategy = new CapitalStrategy(commitment, 0.00, maturity, null, null, riskRating);
+        strategy = chooseStrategy(commitment, 0.00, null, null, maturity, riskRating);
     }
 
     public Loan(double commitment, double outstanding, Date start, Date expiry, Date maturity, int riskRating) {
-        strategy = new CapitalStrategy(commitment, outstanding, maturity, expiry, start, riskRating);
+        strategy = chooseStrategy(commitment, outstanding, start, expiry, maturity, riskRating);
         payments = new HashSet<Payment>();
     }
 
     public Loan(double commitment, Date start, Date maturity, int riskRating) {
-        strategy = new CapitalStrategy(commitment, commitment, maturity, null, start, riskRating);
-
+        strategy = chooseStrategy(commitment, commitment, start, null, maturity, riskRating);
         payments = new HashSet<Payment>();
     }
 

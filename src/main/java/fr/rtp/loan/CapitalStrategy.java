@@ -2,7 +2,7 @@ package fr.rtp.loan;
 
 import java.util.Date;
 
-public class CapitalStrategy {
+public abstract class CapitalStrategy {
 
     private static final int MILLIS_PER_DAY = 86400000;
     private static final int DAYS_PER_YEAR = 365;
@@ -16,13 +16,13 @@ public class CapitalStrategy {
     private final Date expiry;
     private final Date start;
 
-    public CapitalStrategy(double commitment, double outstanding, Date maturity, Date expiry, Date start, int riskRating) {
+    public CapitalStrategy(double commitment, double outstanding, Date start, Date expiry, Date maturity, int riskRating) {
         this.commitment = commitment;
-        this.riskRating = riskRating;
         this.outstanding = outstanding;
-        this.maturity = maturity;
-        this.expiry = expiry;
         this.start = start;
+        this.expiry = expiry;
+        this.maturity = maturity;
+        this.riskRating = riskRating;
     }
 
     protected double yearsTo(Date endDate) {
@@ -54,14 +54,6 @@ public class CapitalStrategy {
         return start;
     }
 
-    double duration(Loan loan) {
-        if (this.getExpiry() == null && this.getMaturity() != null) // Term Loan
-            return loan.weightedAverageDuration();
-        else if (this.getExpiry() != null && this.getMaturity() == null) // Revolver or Advised Line
-            return this.yearsTo(this.getExpiry());
-        return 0.0;
-    }
-
     double outstandingRiskAmount() {
         return getOutstanding();
     }
@@ -78,20 +70,11 @@ public class CapitalStrategy {
         return 0.05;
     }
 
-    private double unusedRiskAmount() {
+    double unusedRiskAmount() {
         return (getCommitment() - getOutstanding());
     }
 
-    double capital(Loan loan) {
-        if (getExpiry() == null && getMaturity() != null) // Term Loan
-            return getCommitment() * duration(loan) * riskFactor();
-        if (getExpiry() != null && getMaturity() == null) {
-            if (getUnusedPercentage() != 1.0) // Revolver
-                return getCommitment() * getUnusedPercentage() * duration(loan) * riskFactor();
-            else // Advised Line
-                return (outstandingRiskAmount() * duration(loan) * riskFactor())
-                        + (unusedRiskAmount() * duration(loan) * unusedRiskFactor());
-        }
-        return 0.0;
-    }
+    abstract double capital(Loan loan);
+    abstract double duration(Loan loan);
+
 }
