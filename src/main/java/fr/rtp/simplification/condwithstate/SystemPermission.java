@@ -11,59 +11,58 @@ public class SystemPermission {
   public SystemPermission(SystemUser requestor, SystemProfile profile) {
     this.requestor = requestor;
     this.profile = profile;
-    state = PermissionState.REQUESTED;
-    isGranted = false;
+    setState(PermissionState.REQUESTED);
+    setGranted(false);
     notifyAdminOfPermissionRequest();
   }
 
   public void claimedBy(SystemAdmin admin) {
-    if (!state.equals(PermissionState.REQUESTED)) {
-      return;
-    }
-    willBeHandledBy(admin);
-    state = PermissionState.CLAIMED;
+    state.ClaimBy(admin, this);
   }
 
   public void deniedBy(SystemAdmin admin) {
-    if (!state.equals(PermissionState.CLAIMED)) {
-      return;
-    }
-    if (!admin.equals(this.admin)) {
-      return;
-    }
-    isGranted = false;
-    state = PermissionState.DENIED;
-    notifyUserOfPermissionRequestResult();
+    state.deniedBy(admin, this);
   }
 
   public void grantedBy(SystemAdmin admin) {
-    if (!state.equals(PermissionState.CLAIMED)) {
-      return;
-    }
-    if (!admin.equals(this.admin)) {
-      return;
-    }
-    state = PermissionState.GRANTED;
-    isGranted = true;
-    notifyUserOfPermissionRequestResult();
+    state.grantedBy(admin, this);
   }
 
-  private void willBeHandledBy(SystemAdmin admin) {
-    this.admin = admin;
+  protected void willBeHandledBy(SystemAdmin admin) {
+    this.setAdmin(admin);
   }
 
-  private void notifyUserOfPermissionRequestResult() {
+  protected void notifyUserOfPermissionRequestResult() {
   }
 
-  private void notifyAdminOfPermissionRequest() {
+  protected void notifyAdminOfPermissionRequest() {
   }
 
   public PermissionState state() {
-    return state;
+    return getState();
   }
 
   public boolean isGranted() {
     return isGranted;
   }
 
+  PermissionState getState() {
+    return state;
+  }
+
+  void setState(PermissionState state) {
+    this.state = state;
+  }
+
+  void setGranted(boolean granted) {
+    isGranted = granted;
+  }
+
+  SystemAdmin getAdmin() {
+    return admin;
+  }
+
+  void setAdmin(SystemAdmin admin) {
+    this.admin = admin;
+  }
 }
