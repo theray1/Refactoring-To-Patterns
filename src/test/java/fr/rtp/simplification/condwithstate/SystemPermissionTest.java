@@ -14,11 +14,11 @@ public class SystemPermissionTest {
   public void grantedBy() throws Exception {
     SystemAdmin systemAdmin = new SystemAdmin();
     permission.grantedBy(systemAdmin);
-    assertEquals(permission.REQUESTED, permission.state(), "requested");
+    assertEquals(PermissionState.REQUESTED, permission.state(), "requested");
     assertEquals(false, permission.isGranted(), "not granted");
     permission.claimedBy(systemAdmin);
     permission.grantedBy(systemAdmin);
-    assertEquals(permission.GRANTED, permission.state(), "granted");
+    assertEquals(PermissionState.GRANTED, permission.state(), "granted");
     assertEquals(true, permission.isGranted(), "granted");
   }
 
@@ -27,11 +27,11 @@ public class SystemPermissionTest {
   public void deniedBy() throws Exception {
     SystemAdmin systemAdmin = new SystemAdmin();
     permission.deniedBy(systemAdmin);
-    assertEquals(permission.REQUESTED, permission.state(), "requested");
+    assertEquals(PermissionState.REQUESTED, permission.state(), "requested");
     assertEquals(false, permission.isGranted(), "not granted");
     permission.claimedBy(systemAdmin);
     permission.deniedBy(systemAdmin);
-    assertEquals(permission.DENIED, permission.state(), "denied");
+    assertEquals(PermissionState.DENIED, permission.state(), "denied");
     assertEquals(false, permission.isGranted(), "denied");
   }
 
