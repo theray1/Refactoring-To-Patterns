@@ -17,7 +17,7 @@ public class SystemPermission {
   }
 
   public void claimedBy(SystemAdmin admin) {
-    state.ClaimBy(admin, this);
+    state.claimedBy(admin, this);
   }
 
   public void deniedBy(SystemAdmin admin) {

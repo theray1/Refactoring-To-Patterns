@@ -30,7 +30,7 @@ public abstract class PermissionState {
         return getState() != null ? getState().hashCode() : 0;
     }
 
-    void ClaimBy(SystemAdmin admin, SystemPermission systemPermission) {
+    void claimedBy(SystemAdmin admin, SystemPermission systemPermission) {
       if (!systemPermission.getState().equals(REQUESTED)) {
         return;
       }
