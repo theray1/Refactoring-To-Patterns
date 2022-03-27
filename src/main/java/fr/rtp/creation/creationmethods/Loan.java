@@ -11,23 +11,15 @@ public class Loan {
     Date expiry;
     CapitalStrategy capitalStrategy;
 
-    public Loan(double commitment, int riskRating, Date maturity) {
-        this(commitment, 0.00, riskRating, maturity, null);
+    private Loan(double commitment, int riskRating, Date maturity) {
+        this(null, commitment, 0.00, riskRating, maturity, null);
     }
 
-    public Loan(double commitment, int riskRating, Date maturity, Date expiry) {
-        this(commitment, 0.00, riskRating, maturity, expiry);
-    }
-
-    public Loan(double commitment, double outstanding, int riskRating, Date maturity, Date expiry) {
-        this(null, commitment, outstanding, riskRating, maturity, expiry);
-    }
-
-    public Loan(CapitalStrategy capitalStrategy, double commitment, int riskRating, Date maturity, Date expiry) {
+    private Loan(CapitalStrategy capitalStrategy, double commitment, int riskRating, Date maturity, Date expiry) {
         this(capitalStrategy, commitment, 0.00, riskRating, maturity, expiry);
     }
 
-    public Loan(CapitalStrategy capitalStrategy, double commitment, double outstanding, int riskRating, Date maturity,
+    private Loan(CapitalStrategy capitalStrategy, double commitment, double outstanding, int riskRating, Date maturity,
                 Date expiry) {
         this.commitment = commitment;
         this.outstanding = outstanding;
@@ -44,5 +36,17 @@ public class Loan {
             else
                 this.capitalStrategy = new CapitalStrategyRCTL();
         }
+    }
+
+    public static Loan createTermLoan(Date maturity, int riskRating, double commitment) {
+        return new Loan(null, commitment, 0.00, riskRating, maturity, null);
+    }
+
+    public static Loan newRevolver(Date maturity, Date expiry, int riskRating, double commitment) {
+        return new Loan(null, commitment, 0.00, riskRating, maturity, expiry);
+    }
+
+    public static Loan newAdvisedLine(Date maturity, Date expiry, int riskRating, double commitment, double outstanding) {
+        return new Loan(null, commitment, outstanding, riskRating, maturity, expiry);
     }
 }
