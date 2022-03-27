@@ -30,35 +30,7 @@ public abstract class PermissionState {
         return getState() != null ? getState().hashCode() : 0;
     }
 
-    void claimedBy(SystemAdmin admin, SystemPermission systemPermission) {
-      if (!systemPermission.getState().equals(REQUESTED)) {
-        return;
-      }
-      systemPermission.willBeHandledBy(admin);
-      systemPermission.setState(CLAIMED);
-    }
-
-    void deniedBy(SystemAdmin admin, SystemPermission systemPermission) {
-      if (!systemPermission.getState().equals(CLAIMED)) {
-        return;
-      }
-      if (!admin.equals(systemPermission.getAdmin())) {
-        return;
-      }
-      systemPermission.setGranted(false);
-      systemPermission.setState(DENIED);
-      systemPermission.notifyUserOfPermissionRequestResult();
-    }
-
-    void grantedBy(SystemAdmin admin, SystemPermission systemPermission) {
-      if (!systemPermission.getState().equals(CLAIMED)) {
-        return;
-      }
-      if (!admin.equals(systemPermission.getAdmin())) {
-        return;
-      }
-      systemPermission.setState(GRANTED);
-      systemPermission.setGranted(true);
-      systemPermission.notifyUserOfPermissionRequestResult();
-    }
+    abstract void claimedBy(SystemAdmin admin, SystemPermission systemPermission);
+    abstract void deniedBy(SystemAdmin admin, SystemPermission systemPermission);
+    abstract void grantedBy(SystemAdmin admin, SystemPermission systemPermission);
 }
